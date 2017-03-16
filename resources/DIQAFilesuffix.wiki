@@ -1,0 +1,2 @@
+Stores the file suffix
+[[Has type::Text|:Text]]

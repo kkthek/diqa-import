@@ -1,0 +1,2 @@
+Store the file location with full path
+[[Has type::Text|:Text]]

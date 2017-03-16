@@ -1,0 +1,70 @@
+div.diqa-import-add-link {
+	margin-top: 10px;
+}
+
+div.diqa-import-add-link a {
+	cursor: pointer;
+}
+
+div.diqa-import-table table {
+	width: 100%
+}
+
+div.diqa-import-section {
+	margin-top: 20px;
+}
+
+div.diqa-import-table {
+	margin-top: 20px;
+}
+
+div.diqa-import-table th {
+	background-color: lightgrey;
+	padding: 2px;
+}
+
+div.diqa-import-form {
+	margin-top: 20px;
+}
+
+div.diqa-import-form td {
+	padding: 4px;
+}
+
+div.diqa-import-form td:first-child {
+	width: 200px;
+}
+
+div.diqa-import-section input[type=submit] {
+	margin-top: 10px;
+}
+
+div.diqa-import-error {
+	background-color: #f45342;
+	padding: 10px;
+}
+
+div.diqa-import-backlink {
+	margin-top: 10px;
+}
+
+form.diqa-import-command {
+	float: left;
+	margin-left: 3px;
+	pointer: cursor;
+}
+
+form.diqa-import-command a {
+	cursor: pointer;
+}
+
+form.diqa-import-command-nofloat a {
+	cursor: pointer;
+}
+
+div.diqa-import-table table tr:nth-child(odd) {
+    background-color: #ccc;
+}
+div.diqa-import-table table tr:nth-child(even) {
+    background-color: #fff;
+}

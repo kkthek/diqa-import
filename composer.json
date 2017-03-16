@@ -1,0 +1,32 @@
+{
+	"name": "diqa/import",
+	"type": "mediawiki-extension",
+	"description": "Imports Word, PDF, Excel, PowerPoint documents",
+	"keywords": [
+		"DIQA", "Document import", "SMW", "Word", "Excel", "PowerPoint", "PDF"
+	],
+	
+	"license": "GPL v2.0",
+	"authors": [
+		{
+			"name": "Kai Kühn"
+			
+		}
+	],
+	"require": {
+		"mediawiki/semantic-media-wiki": "~2.4",
+		"illuminate/database": "^5.4",
+		"diqa/util": "~1.0",
+		"diqa/autocomplete": "~1.0"
+	},
+	
+	"autoload": {
+		"psr-4": {
+			"DIQA\\": "src/"
+		},
+		"files" : [
+			"DIQAimport.php"
+		]
+		
+	}
+}
