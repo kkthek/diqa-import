@@ -23,7 +23,7 @@ class CleanupDocuments extends Maintenance {
 	
 	public function execute() {
 		
-		$this->logger = new LoggerUtils('CleanupDocuments', 'DIQAimport');
+		$this->logger = new LoggerUtils('CleanupDocuments', 'Import');
 		
 		$delay = $this->hasOption ( 'delay' ) ? $this->params ['delay'] : 0;
 		$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQAImport');

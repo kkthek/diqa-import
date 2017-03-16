@@ -40,7 +40,14 @@ div.diqa-import-section input[type=submit] {
 }
 
 div.diqa-import-error {
+	margin-top: 10px;
 	background-color: #f45342;
+	padding: 10px;
+}
+
+div.diqa-import-warning {
+	margin-top: 10px;
+	background-color: #f4a442;
 	padding: 10px;
 }
 

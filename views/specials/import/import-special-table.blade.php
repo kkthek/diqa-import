@@ -1,6 +1,7 @@
 <div class="diqa-import-table">
 <table>
 <tr>
+<th></th>
 <th>{{wfMessage('diqa-crawler-type')->text()}}</th>
 <th>{{wfMessage('diqa-import-path-fs')->text()}}</th>
 <th>{{wfMessage('diqa-url-prefix')->text()}}</th>

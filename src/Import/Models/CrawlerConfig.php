@@ -125,4 +125,31 @@ class CrawlerConfig extends Model {
 	public function setStatus($text) {
 		$this->status_text = $text;
 	}
+	
+	/**
+	 * Returns if the crawler config is active, ie. it should be crawled.
+	 * 
+	 * @return boolean
+	 */
+	public function isActive() {
+		return $this->active == 1;
+	}
+	
+	/**
+	 * Forces a run ONCE.
+	 * 
+	 * @return boolean
+	 */
+	public function forceRun() {
+		return $this->force_run = 1;
+	}
+	
+	/**
+	 * is run forced?
+	 *
+	 * @return boolean
+	 */
+	public function isForceRun() {
+		return $this->force_run == 1;
+	}
 }

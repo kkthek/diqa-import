@@ -26,7 +26,7 @@ class CrawlDirectory extends Maintenance {
 
 	public function execute() {
 		
-		$this->logger = new LoggerUtils('CrawlDirectory', 'DIQAimport');
+		$this->logger = new LoggerUtils('CrawlDirectory', 'Import');
 		
 		try {
 			if ($this->hasOption('directory')) {
@@ -88,8 +88,14 @@ class CrawlDirectory extends Maintenance {
 		$toRun = [];
 		$entries = CrawlerConfig::all();
 		foreach($entries as $e) {
+			
+			if (!$e->isActive()) {
+				continue;
+			}
+			
 			$this->checkCrawlerConfig($e);
-			if ($e->notYetRun()) {
+			
+			if ($e->notYetRun() || $e->isForceRun()) {
 				$toRun[] = $e;
 			} else {
 				$this->logger->log("\nNext scheduled run of {$e->getRootPath()}: " . $e->getNextRun());

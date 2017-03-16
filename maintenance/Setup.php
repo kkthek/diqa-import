@@ -29,6 +29,8 @@ class SetupDIQAImport extends Maintenance {
 			'last_run_at' => 'DATETIME',
 			'run_interval' => 'INT(8) NOT NULL',
 			'documents_processed' => 'INT(8) NOT NULL',
+			'active' => 'TINYINT NOT NULL DEFAULT 1',
+			'force_run' => 'TINYINT NOT NULL DEFAULT 0',
 			'status_text' => 'VARCHAR(4095)'),
 		$db, true);
 		

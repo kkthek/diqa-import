@@ -16,7 +16,7 @@ class DocumentOperations {
 	
 	private static function ensureLogger() {
 		if (is_null(self::$logger)) {
-			self::$logger = new LoggerUtils('DocumentOperations', 'DIQAimport');
+			self::$logger = new LoggerUtils('DocumentOperations', 'Import');
 		}
 	}
 	/**

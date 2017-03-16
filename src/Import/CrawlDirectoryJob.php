@@ -24,7 +24,7 @@ class CrawlDirectoryJob extends Job {
 	 */
 	function __construct( $title, $params ) {
 		parent::__construct( 'CrawlDirectoryJob', $title, $params );
-		$this->logger = new LoggerUtils('CrawlDirectoryJob', 'DIQAimport');
+		$this->logger = new LoggerUtils('CrawlDirectoryJob', 'Import');
 		
 	}
 	

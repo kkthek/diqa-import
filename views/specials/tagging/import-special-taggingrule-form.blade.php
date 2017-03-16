@@ -19,6 +19,7 @@ use DIQA\Import\Models\TaggingRule;
 	</td>
 	<td>
 	<input type="text" size="60" name="diqa_taggingrule_attribute" value="{{isset($taggingRule) ? $taggingRule->getRuleClass() : ''}}"/>
+	<br>({{wfMessage('diqa-import-attribute-property-hint')->text()}})
 	</td>
 	</tr>
 	

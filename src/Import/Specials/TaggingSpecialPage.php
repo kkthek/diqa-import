@@ -157,15 +157,7 @@ class TaggingSpecialPage extends SpecialPage {
 			
 		}
 		
-		// -----------------------------------
-		// wiki operation commands
-		// -----------------------------------
-		if (isset($_POST['diqa_import_startRefresh'])) {
-			$params = [];
-			$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQAImport');
-			$job = new RefreshDocumentsJob($specialPageTitle, $params);
-			JobQueueGroup::singleton()->push( $job );
-		}
+		
 		
 		$this->showDefaultContent($html);
 	}
@@ -204,6 +196,8 @@ class TaggingSpecialPage extends SpecialPage {
 				
 			$entry->save();
 		}
+		
+		self::addHintToRefreshSemanticData();
 	}
 	
 	/**
@@ -215,6 +209,8 @@ class TaggingSpecialPage extends SpecialPage {
 	
 		$entry = TaggingRule::where('id', $id);
 		$entry->delete();
+		
+		self::addHintToRefreshSemanticData();
 	}
 
 	/**
@@ -229,6 +225,8 @@ class TaggingSpecialPage extends SpecialPage {
 		$html .= $this->blade->view ()->make ( "specials.tagging.import-special-taggingrule-form",
 				[	'taggingRule' => $entry,
 					'edit' => true ] )->render ();
+		
+		self::addHintToRefreshSemanticData();
 	}
 	
 	/**
@@ -398,4 +396,11 @@ class TaggingSpecialPage extends SpecialPage {
 			$entry->save();
 		}
 	}
+	
+	public static function addHintToRefreshSemanticData() {
+		global $IP;
+		@touch("$IP/images/.diqa-import-needs-refresh");
+	}
+	
+	
 }

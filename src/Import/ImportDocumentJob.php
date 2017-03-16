@@ -28,7 +28,7 @@ class ImportDocumentJob extends Job {
 	 */
 	function __construct($title, $params) {
 		parent::__construct ( 'ImportDocumentJob', $title, $params );
-		$this->logger = new LoggerUtils('ImportDocumentJob', 'DIQAimport');
+		$this->logger = new LoggerUtils('ImportDocumentJob', 'Import');
 	}
 	
 	/**

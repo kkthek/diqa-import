@@ -11,6 +11,15 @@
 
 	<tr>
 	<td>
+	<span>{{wfMessage('diqa-import-active')->text()}}</span>
+	</td>
+	<td>
+	<input name="diqa_import_active" type="checkbox" {{$entry->active == 1 ? 'checked="checked"' : ''}} />
+	</td>
+	</tr>
+
+	<tr>
+	<td>
 	<span>{{wfMessage('diqa-import-path-fs')->text()}}</span>
 	</td>
 	<td>

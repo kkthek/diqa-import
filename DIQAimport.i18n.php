@@ -7,6 +7,7 @@ $messages = array();
 
 $messages['de'] = array(
 	'diqaimport' => 'DIQA-Import',
+	'diqaimport' => 'DIQA-Import-Taggingregeln',
 	'diqaimportassistent' => 'DIQA-Import-Assistent',
 	'diqa-import-desc' => 'Import-Extension',
 	'diqa-import-title' => 'Dokumente importieren',
@@ -34,6 +35,8 @@ $messages['de'] = array(
 	'diqa-import-copy-rule' => 'Kopieren',
 	'diqa-import-test-rule' => 'Testen',
 	'diqa-import-refresh' => 'Aktualisieren',
+	'diqa-import-wiki-refresh' => 'Semantische Daten aktualisieren',
+	'diqa-import-force-crawl' => 'Crawl erzwingen',
 	'diqa-import-exporttagging' => 'Regeln als XML exportieren',
 	'diqa-import-importtagging' => 'Regeln von XML importieren',
 	'diqa-import-tagging-type' => 'Regeltyp',
@@ -51,7 +54,9 @@ $messages['de'] = array(
 	'diqa-import-rule-output' => 'Regel-Ausgabe',
 	'diqa-import-yes' => 'ja',
 	'diqa-import-no' => 'nein',
+	'diqa-import-active' => 'Aktiv',
 	'diqa-import-no-rule-applied' => 'Keine Regel angewendet',
+	'diqa-import-attribute-property-hint' => 'Benutze * um alle Attribute/Kategorien zu sehen',
 	'diqa-import-crawled-property-hint' => 'Benutze * um alle Dokumenteneigenschaften zu sehen',
 	'diqa-import-returnvalue-hint' => 'darf auch leer sein. In diesem Fall muss der reguläre Ausdruck mind. 1 Sub-pattern enthalten',
 		

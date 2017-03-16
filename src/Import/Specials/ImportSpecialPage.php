@@ -82,11 +82,13 @@ class ImportSpecialPage extends SpecialPage {
 		// crawler config commands
 		// ----------------------------------- 
 		if (isset ( $_POST ['add-import-entry'] )) {
+			
+			$active = isset($_POST ['diqa_import_active']) && $_POST ['diqa_import_active'] == 'on';
 			$rootPath = $_POST ['diqa_import_import_path'];
 			$urlPrefix = $_POST ['diqa_url_path_prefix'];
 			$updateInterval = $_POST ['diqa_update_interval'];
 			$check = false;
-			$this->doAddOrUpdateEntry ($rootPath, $urlPrefix, $updateInterval, $check);
+			$this->doAddOrUpdateEntry ($active, $rootPath, $urlPrefix, $updateInterval, $check);
 		}
 		if (isset ($_POST['diqa-import-remove-entry'])) {
 			$id = $_POST['diqa-import-remove-entry'];
@@ -98,6 +100,22 @@ class ImportSpecialPage extends SpecialPage {
 			return;
 		}
 		
+		if (isset ($_POST['diqa-import-force-crawl'])) {
+			$id = $_POST['diqa-import-force-crawl'];
+			$this->doForceCrawl ($id, $html );
+		}
+		
+		// -----------------------------------
+		// wiki operation commands
+		// -----------------------------------
+		if (isset($_POST['diqa_import_startRefresh'])) {
+			$params = [];
+			$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQAImport');
+			$job = new RefreshDocumentsJob($specialPageTitle, $params);
+			JobQueueGroup::singleton()->push( $job );
+			self::removeHintToRefreshSemanticData();
+		}
+		
 		$this->showDefaultContent($html);
 	}
 	
@@ -105,12 +123,13 @@ class ImportSpecialPage extends SpecialPage {
 	 /**
 	  * Adds or updates an entry.
 	  * 
+	  * @param bool $active
 	  * @param string $rootPath
 	  * @param string $urlPrefix
 	  * @param string $updateInterval
 	  * @throws Exception
 	  */
-	 private function doAddOrUpdateEntry($rootPath, $urlPrefix, $updateInterval, $check) {
+	 private function doAddOrUpdateEntry($active, $rootPath, $urlPrefix, $updateInterval, $check) {
 	 
 	 	// validate entry
 		if ($check) {
@@ -131,12 +150,14 @@ class ImportSpecialPage extends SpecialPage {
 			$entry->last_run_at = '0000-00-00 00:00:00';
 			$entry->run_interval = $updateInterval;
 			$entry->documents_processed = 0;
+			$entry->active = $active == 1;
 			$entry->save ();
 		} else {
 			$entry = CrawlerConfig::where('id', $id)->get()->first();
 			$entry->root_path = $rootPath;
 			$entry->url_prefix = $urlPrefix;
 			$entry->run_interval = $updateInterval;
+			$entry->active = $active == 1;
 			$entry->save();
 		}
 	 }
@@ -168,6 +189,20 @@ class ImportSpecialPage extends SpecialPage {
 	}
 	
 	/**
+	 * Force crawl
+	 *
+	 * @param id
+	 * @param string (out) html
+	 */
+	private function doForceCrawl($id, & $html) {
+	
+		$entry = CrawlerConfig::where('id', $id)->get()->first();
+		$entry->forceRun();
+		$entry->setStatus("FORCE");
+		$entry->save();
+	}
+	
+	/**
 	 * Shows the default content of the DIQAimport special page.
 	 * 
 	 * @param string (out) $html
@@ -183,6 +218,7 @@ class ImportSpecialPage extends SpecialPage {
 				[	'entries' => $crawlerConfigs, 
 					'taggingRules' => $taggingRules,
 					'isCrawlerActive' => self::isCrawlCommandCalled(), 
+					'needsRefresh' => self::needsHintToRefreshSemanticData(),
 					'crawlerErrors' => self::getCrawlerErrors()
 		] )->render ();
 	}
@@ -223,5 +259,24 @@ class ImportSpecialPage extends SpecialPage {
 			}
 			return self::checkDirectory(substr($directory, 0, $lastpos));
 		}
+	}
+	
+	/**
+	 * Checks if refresh hint is needed.
+	 * 
+	 * @return boolean
+	 */
+	public static function needsHintToRefreshSemanticData() {
+		global $IP;
+		return file_exists("$IP/images/.diqa-import-needs-refresh");
+	}
+	
+	/**
+	 * Removes refresh hint.
+	 * 
+	 */
+	public static function removeHintToRefreshSemanticData() {
+		global $IP;
+		@unlink("$IP/images/.diqa-import-needs-refresh");
 	}
 }

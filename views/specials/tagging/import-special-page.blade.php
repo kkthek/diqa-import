@@ -18,9 +18,3 @@
 </div>
 </div>
 
-<div class="diqa-import-section">
-<h1>Wiki-Operations</h1>
-<form action="{{wfDIQAURL('Special:DIQAtagging')}}" method="post">
-<input type="submit" name="diqa_import_startRefresh" value="Refresh semantic data" />
-</form>
-</div>
