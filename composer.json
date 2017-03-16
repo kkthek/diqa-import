@@ -20,13 +20,6 @@
 		"diqa/autocomplete": "~1.0"
 	},
 	
-	"require-dev": {
-		"mediawiki/semantic-media-wiki": "~2.4",
-		"illuminate/database": "^5.4",
-		"diqa/util": "dev-master",
-		"diqa/autocomplete": "dev-master"
-	},
-	
 	"autoload": {
 		"psr-4": {
 			"DIQA\\": "src/"
