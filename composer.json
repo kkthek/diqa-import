@@ -16,8 +16,8 @@
 	"require": {
 		"mediawiki/semantic-media-wiki": "~2.4",
 		"illuminate/database": "^5.4",
-		"diqa/util": "~1.0",
-		"diqa/autocomplete": "~1.0"
+		"diqa/util": "~0.1",
+		"diqa/autocomplete": "~0.1"
 	},
 	
 	"autoload": {
