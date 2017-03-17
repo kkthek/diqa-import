@@ -14,7 +14,7 @@
 	<span>{{wfMessage('diqa-import-active')->text()}}</span>
 	</td>
 	<td>
-	<input name="diqa_import_active" type="checkbox" {{$entry->active == 1 ? 'checked="checked"' : ''}} />
+	<input name="diqa_import_active" type="checkbox" {{isset($entry) && $entry->active == 1 ? 'checked="checked"' : ''}} />
 	</td>
 	</tr>
 

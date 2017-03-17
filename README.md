@@ -12,7 +12,7 @@ DIQAimport
  	
  Configure cron-jobs:
  
- 	crontab -l | { cat; echo "* * * * *  php /var/www/html/mediawiki/extensions/DIQAimport/maintenance/CrawlDirectory.php"; } | crontab -
+ 	crontab -l | { cat; echo "* * * * *  php /var/www/html/mediawiki/extensions/Import/maintenance/CrawlDirectory.php"; } | crontab -
 	crontab -l | { cat; echo "* * * * *  php /var/www/html/mediawiki/maintenance/runJobs.php"; } | crontab -
 	
  Create directory which contains the documents (a mount point):
