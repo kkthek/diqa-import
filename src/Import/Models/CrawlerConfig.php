@@ -136,12 +136,13 @@ class CrawlerConfig extends Model {
 	}
 	
 	/**
-	 * Forces a run ONCE.
+	 * Set ForceRun state
+	 * @param boolean ForceRun state
 	 * 
 	 * @return boolean
 	 */
-	public function forceRun() {
-		return $this->force_run = 1;
+	public function forceRun($forceRun = true) {
+		return $this->force_run = $forceRun ? 1 : 0;
 	}
 	
 	/**

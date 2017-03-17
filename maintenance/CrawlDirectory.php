@@ -116,6 +116,7 @@ class CrawlDirectory extends Maintenance {
 			
 			$r->updateLastRun();
 			$r->setStatus("Creating import jobs...");
+			$r->forceRun(false);
 			$r->save();
 			$this->logger->log("Creating import jobs for: ".$r->getRootPath());
 			$jobsCreated = $this->importDirectory($r->getRootPath(), $dryRun);

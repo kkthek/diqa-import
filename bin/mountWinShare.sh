@@ -1,13 +1,16 @@
 #!/bin/sh
-
 UNCPATH=$1
 USER=$2
-DOMAIN=$3
-read -s -p "password: " PW
-echo -e ""
+PW=$3
+DOMAIN=$4
+
+if [ ! -e /opt/freigabe ]; then
+	sudo mkdir -p /opt/freigabe
+fi
 
 if [ !  -z  $DOMAIN  ]; then
-	sudo mount -t cifs $UNCPATH /opt/freigabe/ -o user=$USER,password=$PW,domain=$DOMAIN
+
+	sudo -u apache sudo mount -t cifs $UNCPATH /opt/freigabe/ -o user=$USER,password=$PW,domain=$DOMAIN
 else
-	sudo mount -t cifs $UNCPATH /opt/freigabe/ -o user=$USER,password=$PW
+	sudo -u apache sudo mount -t cifs $UNCPATH /opt/freigabe/ -o user=$USER,password=$PW
 fi
