@@ -7,7 +7,7 @@ $messages = array();
 
 $messages['de'] = array(
 	'diqaimport' => 'DIQA-Import',
-	'diqaimport' => 'DIQA-Import-Taggingregeln',
+	'diqatagging' => 'DIQA-Import-Taggingregeln',
 	'diqaimportassistent' => 'DIQA-Import-Assistent',
 	'diqa-import-desc' => 'Import-Extension',
 	'diqa-import-title' => 'Dokumente importieren',
