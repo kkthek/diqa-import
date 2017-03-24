@@ -4,7 +4,9 @@
 <td>{{$entry->root_path}}</td>
 <td>{{$entry->url_prefix}}</td>
 <td>{{$entry->last_run_at}}</td>
-<td>{{$entry->run_interval}}</td>
+<td>{{date("H:i:s", strtotime($entry->date_to_start))}}</td>
+<td>{{date("Y-m-d", strtotime($entry->date_to_start))}}</td>
+<td>{{wfMessage('diqa-time-interval-'.$entry->time_interval)->text()}}</td>
 <td>{{$entry->documents_processed}}</td>
 <td>{{$entry->status_text}}</td>
 <td>

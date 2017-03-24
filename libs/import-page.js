@@ -25,6 +25,9 @@
 			updateStatus();
 		}, 30000);
 
+		$('input[name=diqa_date_to_start]').datepicker();
+		$('input[name=diqa_date_to_start]').datepicker( "option", "dateFormat", "yy-mm-dd");
+		$('input[name=diqa_date_to_start]').val($('input[name=diqa_date_to_start]').attr('current'));
 		$('div.diqa-import-table table').tablesorter();
 		
 		$('select[name=diqa_taggingrule_type]').change(function(e) {

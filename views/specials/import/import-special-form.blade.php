@@ -1,3 +1,6 @@
+<?php 
+use DIQA\Import\Models\CrawlerConfig;
+?>
 @if(!$edit)
 <div class="diqa-import-add-link">
 <a onclick="javascript: $('#add-crawler-config').toggle();">
@@ -38,10 +41,34 @@
 	
 	<tr>
 	<td>
-	<span>{{wfMessage('diqa-update-interval')->text()}}</span>
+	<span>{{wfMessage('diqa-time-to-start')->text()}}</span>
 	</td>
 	<td>
-	<input type="text" size="10" name="diqa_update_interval" value="{{isset($entry) ? $entry->getRunInterval() : ''}}"/>
+	<select name="diqa_time_to_start">
+		@foreach([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23] as $hour)
+			<?php $hour = strlen($hour) == 1 ? "0$hour" : $hour; ?>
+			<option value="{{$hour}}" {{isset($entry) && $entry->getTimeToStart() == $hour.':00:00' ? 'selected=true' : ''}}>
+				{{$hour.':00:00'}}
+			</option>
+		@endforeach
+	</select>
+	
+	<select name="diqa_time_interval">
+		@foreach(CrawlerConfig::$INTERVALS as $label => $interval)
+			<option value="{{$interval}}" {{isset($entry) && $entry->getInterval() == $interval ? 'selected=true' : ''}}>
+				{{wfMessage('diqa-time-interval-'.$interval)->text()}}
+			</option>
+		@endforeach
+	</select>
+	</td>
+	</tr>
+	
+	<tr>
+	<td>
+	<span>{{wfMessage('diqa-date-to-start')->text()}}</span>
+	</td>
+	<td>
+	<input type="text" size="10" name="diqa_date_to_start" current="{{isset($entry) && $entry->getDateToStart() != '0000-00-00 00:00:00' ? $entry->getDateToStart() : ''}}"/>
 	</td>
 	</tr>
 	

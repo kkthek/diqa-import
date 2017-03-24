@@ -86,9 +86,11 @@ class ImportSpecialPage extends SpecialPage {
 			$active = isset($_POST ['diqa_import_active']) && $_POST ['diqa_import_active'] == 'on';
 			$rootPath = $_POST ['diqa_import_import_path'];
 			$urlPrefix = $_POST ['diqa_url_path_prefix'];
-			$updateInterval = $_POST ['diqa_update_interval'];
+			$time_to_start = $_POST ['diqa_time_to_start'];
+			$date_to_start = $_POST ['diqa_date_to_start'];
+			$time_interval = $_POST ['diqa_time_interval'];
 			$check = false;
-			$this->doAddOrUpdateEntry ($active, $rootPath, $urlPrefix, $updateInterval, $check);
+			$this->doAddOrUpdateEntry ($active, $rootPath, $urlPrefix, $time_to_start, $date_to_start, $time_interval, $check);
 		}
 		if (isset ($_POST['diqa-import-remove-entry'])) {
 			$id = $_POST['diqa-import-remove-entry'];
@@ -129,16 +131,22 @@ class ImportSpecialPage extends SpecialPage {
 	  * @param string $updateInterval
 	  * @throws Exception
 	  */
-	 private function doAddOrUpdateEntry($active, $rootPath, $urlPrefix, $updateInterval, $check) {
+	 private function doAddOrUpdateEntry($active, $rootPath, $urlPrefix, $time_to_start, $date_to_start, $time_interval, $check) {
 	 
 	 	// validate entry
 		if ($check) {
 			self::checkDirectory($rootPath);
 		}
 		
-		if (!(is_numeric($updateInterval) && floor($updateInterval) == $updateInterval)) {
-			throw new Exception("Update interval must be numeric: $updateInterval", self::ERROR_NOT_NUMERIC);
+		if (!(is_numeric($time_to_start) && floor($time_to_start) == $time_to_start)) {
+			throw new Exception("time_to_start must be numeric: $time_to_start", self::ERROR_NOT_NUMERIC);
 		}
+		
+		if (!(is_numeric($time_interval) && floor($time_interval) == $time_interval)) {
+			throw new Exception("time_interval must be numeric: $time_interval", self::ERROR_NOT_NUMERIC);
+		}
+		
+		//TODO: verify date
 		
 		// create or update it
 		$id = $_POST['diqa_import_entry_id'];
@@ -148,7 +156,10 @@ class ImportSpecialPage extends SpecialPage {
 			$entry->root_path = $rootPath;
 			$entry->url_prefix = $urlPrefix;
 			$entry->last_run_at = '0000-00-00 00:00:00';
-			$entry->run_interval = $updateInterval;
+			
+			$time_to_start = strlen($time_to_start) == 1 ? "0$time_to_start" : $time_to_start;
+			$entry->date_to_start = "$date_to_start $time_to_start:00:00";
+			$entry->time_interval = $time_interval;
 			$entry->documents_processed = 0;
 			$entry->active = $active == 1;
 			$entry->save ();
@@ -156,7 +167,9 @@ class ImportSpecialPage extends SpecialPage {
 			$entry = CrawlerConfig::where('id', $id)->get()->first();
 			$entry->root_path = $rootPath;
 			$entry->url_prefix = $urlPrefix;
-			$entry->run_interval = $updateInterval;
+			$time_to_start = strlen($time_to_start) == 1 ? "0$time_to_start" : $time_to_start;
+			$entry->date_to_start = "$date_to_start $time_to_start:00:00";
+			$entry->time_interval = $time_interval;
 			$entry->active = $active == 1;
 			$entry->save();
 		}

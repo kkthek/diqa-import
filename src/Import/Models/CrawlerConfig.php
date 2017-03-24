@@ -2,6 +2,8 @@
 namespace DIQA\Import\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
+use Exception;
 
 /**
  * Represents a crawler configuration.
@@ -13,6 +15,8 @@ class CrawlerConfig extends Model {
 	
 	protected $table = 'diqa_imports_crawler';
 	public $timestamps = false;
+	
+	public static $INTERVALS = [ 'daily' => 0, 'hourly' => 1];
 	
 	/**
 	 * Filesystem path to a directory
@@ -45,16 +49,35 @@ class CrawlerConfig extends Model {
 	}
 	
 	/**
-	 * Interval between two crawl operation in minutes.
+	 * Time to start crawling
 	 * 
-	 * @return int
+	 * @return HH:MM:SS
 	 */
-	public function getRunInterval() {
-		return $this->run_interval;
+	public function getTimeToStart() {
+		return date("H:i:s", strtotime($this->date_to_start));
 	}
 	
 	/**
-	 * Number of documents processed in last run.
+	 * Date to start crawling 
+	 * 
+	 * @return string YYYY-MM-DD
+	 */
+	public function getDateToStart() {
+		return date("Y-m-d", strtotime($this->date_to_start));
+	}
+	
+	/**
+	 * Intervals
+	 * 
+	 * @return int values of $INTERVALS
+	 */
+	public function getInterval() {
+		return $this->time_interval;
+	}
+	
+	/**
+	 * Number of documents processed (=jobs created)
+	 * in last run.
 	 * 
 	 * @return int
 	 */
@@ -92,19 +115,86 @@ class CrawlerConfig extends Model {
 	 * @return boolean
 	 */
 	public function shouldRun() {
+		
+		if ($this->notYetRun()) {
+			return $this->checkStartDateAndTime();
+		}
+		
 		$lastRunTS = strtotime($this->last_run_at);
-		return $lastRunTS + $this->run_interval * 60 < time();
+		$lastRunCarbon = Carbon::createFromTimestamp($lastRunTS);
+		
+		switch($this->getInterval()) {
+			case self::$INTERVALS['daily']: 
+				
+				if ($lastRunCarbon->addDay()->gt(Carbon::now())) {
+					return false;
+				}
+				return true;
+				
+				break;
+			case self::$INTERVALS['hourly']: 
+				
+				if ($lastRunCarbon->addHour()->gt(Carbon::now())) {
+					return false;
+				}
+				return true;
+				
+				break;
+				
+			default:
+				throw new Exception("unknown interval type");
+		}
+	
+		
 	}
 	
 	/**
-	 * Returns timestamp of next run.
-	 * Format: YYYY-MM-DD HH:MM:SS
+	 * Checks if current date is after startDate 
+	 * AND if current time is after the time in startDate.
 	 * 
-	 * @return string
+	 * If startDate is not set, it always returns true.
+	 * 
+	 * @return boolean
+	 */
+	private function checkStartDateAndTime() {
+		if ($this->date_to_start == '0000-00-00 00:00:00') {
+			return true;
+		}
+		$datetostart = strtotime($this->date_to_start);
+		$datetostart = Carbon::createFromTimestamp($datetostart);
+		$beginOnCurrentDay = Carbon::now()->startOfDay()->addHours($datetostart->hour);
+		$now = Carbon::now();
+		return $now->gte($datetostart) && $now->gte($beginOnCurrentDay);
+	}
+	
+	/**
+	 * Returns time of next run.
+	 *  
+	 * @return Carbon
 	 */
 	public function getNextRun() {
+		
+		if ($this->notYetRun()) {
+			$datetostart = strtotime($this->date_to_start);
+			$datetostart = Carbon::createFromTimestamp($datetostart);
+			return $datetostart;
+		}
+		
 		$lastRunTS = strtotime($this->last_run_at);
-		return date('Y-m-d H:i:s', $lastRunTS + $this->run_interval * 60);
+		$lastRunCarbon = Carbon::createFromTimestamp($lastRunTS);
+		
+		switch($this->getInterval()) {
+			case self::$INTERVALS['daily']: 
+				return $lastRunCarbon->addDay();
+				break;
+			case self::$INTERVALS['hourly']: 
+				return $lastRunCarbon->addHour();
+				break;
+			default:
+				throw new Exception("unknown interval type");
+		}
+		
+		
 	}
 	
 	/**

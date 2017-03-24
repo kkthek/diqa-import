@@ -60,7 +60,7 @@ $GLOBALS['wgAPIModules']['diqa_import'] = 'DIQA\Import\Api\DIQAImportAPI';
 
 $wgResourceModules['ext.enhancedretrieval.diqaimport'] = array(
 		'localBasePath' => $dir,
-		'remoteExtPath' => 'DIQAimport',
+		'remoteExtPath' => 'Import',
 		'scripts' => array(
 				'libs/xfs_facetedsearch.js',
 				'libs/import-page.js'
@@ -69,7 +69,7 @@ $wgResourceModules['ext.enhancedretrieval.diqaimport'] = array(
 		'styles' => [ 'skins/diqa-import.css'
 				    ],
 		
-		'dependencies' => [ 'jquery.ui.autocomplete', 'jquery.tablesorter'],
+		'dependencies' => [ 'jquery.ui.autocomplete', 'jquery.ui.datepicker', 'jquery.tablesorter'],
 		'messages' => array(
 				'diqa-import-open-document',
 				'diqa-import-open-document-dir',
@@ -79,7 +79,7 @@ $wgResourceModules['ext.enhancedretrieval.diqaimport'] = array(
 
 $wgResourceModules['ext.enhancedretrieval.diqaimport-assistent'] = array(
 		'localBasePath' => $dir,
-		'remoteExtPath' => 'DIQAimport',
+		'remoteExtPath' => 'Import',
 		'scripts' => array(
 				'libs/fancytree/jquery.fancytree-all.js',
 				'libs/import-assistent-page.js'

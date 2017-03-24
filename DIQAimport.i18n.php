@@ -17,7 +17,11 @@ $messages['de'] = array(
 	# Special
 	'diqa-import-path-fs' => 'Import-Pfad im Dateisystem',
 	'diqa-url-prefix' => 'URL-Prefix (z.B. UNC-Pfad-Prefix)',
-	'diqa-update-interval' => 'Update-Interval (min)',
+	'diqa-time-to-start' => 'Zeitpunkt',
+	'diqa-date-to-start' => 'Startdatum',
+	'diqa-time-interval' => 'Zeitinterval',
+	'diqa-time-interval-0' => 'einmal täglich',
+	'diqa-time-interval-1' => 'stündlich',
 	'diqa-save-button' => 'Speichern',
 	'diqa-cancel-button' => 'Abbrechen',
 	'diqa-back-button' => 'Zurück',
