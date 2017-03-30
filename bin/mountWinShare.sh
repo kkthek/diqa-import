@@ -16,7 +16,7 @@ fi
 
 if [ !  -z  $DOMAIN  ]; then
 
-	sudo -u apache sudo mount -t cifs $UNCPATH $DIQA_IMPORT_PATH -o user=$USER,password=$PW,domain=$DOMAIN
+	sudo -u apache sudo mount -t cifs "$UNCPATH" $DIQA_IMPORT_PATH -o user=$USER,password=$PW,domain=$DOMAIN
 else
-	sudo -u apache sudo mount -t cifs $UNCPATH $DIQA_IMPORT_PATH -o user=$USER,password=$PW
+	sudo -u apache sudo mount -t cifs "$UNCPATH" $DIQA_IMPORT_PATH -o user=$USER,password=$PW
 fi
