@@ -4,11 +4,12 @@
 # Mounts a Windows share
 #
 
-DIQA_IMPORT_PATH=/opt/DIQA/freigabe
-UNCPATH=$1
-USER=$2
-PW=$3
-DOMAIN=$4
+DIR=$1
+DIQA_IMPORT_PATH=/opt/DIQA/$DIR
+UNCPATH=$2
+USER=$3
+PW=$4
+DOMAIN=$5
 
 if [ ! -e $DIQA_IMPORT_PATH ]; then
 	sudo mkdir -p $DIQA_IMPORT_PATH

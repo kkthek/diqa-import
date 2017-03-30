@@ -72,14 +72,20 @@ class ImportSpecialPage extends SpecialPage {
 	 */
 	private function readMountedFolders($force = true) {
 		
-		if (!$force) {
-			if (count(CrawlerConfig::all()) > 0) {
-				return;
-			}
+		global $wgDIQAImportUseDIQAFolder;
+		if (isset($wgDIQAImportUseDIQAFolder) && $wgDIQAImportUseDIQAFolder === false) {
+			return;
 		}
 		
+		// if not force, only check mounted folders if there are no crawler configs yet.
+		if (!$force && count(CrawlerConfig::all()) > 0) {
+			return;
+		}
+		
+		// check if DIQA-Import-Folder exists and is readible
 		if (!file_exists(self::DIQA_IMPORT_FOLDER) || !is_dir(self::DIQA_IMPORT_FOLDER) || !is_readable(self::DIQA_IMPORT_FOLDER)) {
-			throw new Exception(sprintf('Please create folder %s and make it readable for apache', self::DIQA_IMPORT_FOLDER));
+			throw new Exception(sprintf('Please create folder %s and make it readable for apache or set $wgDIQAImportUseDIQAFolder=false in LocalSettings.php.',
+					 self::DIQA_IMPORT_FOLDER));
 		}
 		
 		// check configurations and create new if necessary
