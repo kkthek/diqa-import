@@ -14,6 +14,7 @@ use DIQA\Import\Models\TaggingRule;
 use DIQA\Import\RefreshDocumentsJob;
 use DIQA\Util\TemplateEditor;
 use DIQA\Import\TaggingRuleParserFunction;
+use Carbon\Carbon;
 
 if (! defined ( 'MEDIAWIKI' )) {
 	die ();
@@ -26,6 +27,8 @@ class ImportSpecialPage extends SpecialPage {
 	const ERROR_NOT_NUMERIC = 103;
 	const ERROR_WRONG_REGEX = 104;
 	const ERROR_INTERNAL = 105;
+	
+	const DIQA_IMPORT_FOLDER = '/opt/DIQA';
 	
 	private $blade;
 	public function __construct() {
@@ -50,6 +53,7 @@ class ImportSpecialPage extends SpecialPage {
 			
 			$html = '';
 			$this->checkPriviledges();
+			$this->readMountedFolders(false);
 			$this->dispatchRequest ($html);
 					
 			
@@ -58,6 +62,49 @@ class ImportSpecialPage extends SpecialPage {
 					[	'msg' => $e->getMessage() ] )->render ();
 		}
 		$wgOut->addHTML ( $html );
+	}
+	
+	/**
+	 * Reads the directories in DIQA_IMPORT_FOLDER and creates a crawler configuration for each.
+	 * @param boolean force If false, mounted folders are only searched if there are no crawler configs yet.
+	 * 
+	 * @throws Exception
+	 */
+	private function readMountedFolders($force = true) {
+		
+		if (!$force) {
+			if (count(CrawlerConfig::all()) > 0) {
+				return;
+			}
+		}
+		
+		if (!file_exists(self::DIQA_IMPORT_FOLDER) || !is_dir(self::DIQA_IMPORT_FOLDER) || !is_readable(self::DIQA_IMPORT_FOLDER)) {
+			throw new Exception(sprintf('Please create folder %s and make it readable for apache', self::DIQA_IMPORT_FOLDER));
+		}
+		
+		// check configurations and create new if necessary
+		$dh = opendir(self::DIQA_IMPORT_FOLDER);
+		while (($filepath = readdir($dh))) {
+			
+			if (($filepath == '.') || ($filepath == '..') || !is_dir(self::DIQA_IMPORT_FOLDER.'/'.$filepath)) {
+				continue;
+			}
+			
+			$config = CrawlerConfig::where('root_path', self::DIQA_IMPORT_FOLDER.'/'.$filepath)->get()->first();
+			if (is_null($config)) {
+				$config = new CrawlerConfig();
+				$config->crawler_type = 'doc-import';
+				$config->url_prefix = '';
+				$config->root_path = self::DIQA_IMPORT_FOLDER.'/'.$filepath;
+				$config->date_to_start = Carbon::now()->startOfDay()->toDateTimeString();
+				$config->time_interval = CrawlerConfig::$INTERVALS['daily'];
+				$config->documents_processed = 0;
+				$config->active = 1;
+				$config->save();
+			}
+			
+		}
+		closedir($dh);
 	}
 	
 	/**
@@ -105,6 +152,10 @@ class ImportSpecialPage extends SpecialPage {
 		if (isset ($_POST['diqa-import-force-crawl'])) {
 			$id = $_POST['diqa-import-force-crawl'];
 			$this->doForceCrawl ($id, $html );
+		}
+		
+		if (isset($_POST['diqa-import-rescan'])) {
+			$this->readMountedFolders();
 		}
 		
 		// -----------------------------------
@@ -183,7 +234,7 @@ class ImportSpecialPage extends SpecialPage {
 	 */
 	 private function doRemoveEntry($id) {
 		
-		$entry = CrawlerConfig::where('id', $id);
+		$entry = CrawlerConfig::where('id', $id)->get()->first();
 		$entry->delete();
 	}
 

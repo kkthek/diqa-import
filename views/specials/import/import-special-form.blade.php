@@ -4,7 +4,7 @@ use DIQA\Import\Models\CrawlerConfig;
 @if(!$edit)
 <div class="diqa-import-add-link">
 <a onclick="javascript: $('#add-crawler-config').toggle();">
-[Hinzufügen]
+[{{wfMessage('diqa-import-add')->text()}}]
 </a>
 </div>
 @endif

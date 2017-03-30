@@ -24,6 +24,8 @@ $messages['de'] = array(
 	'diqa-time-interval-1' => 'stündlich',
 	'diqa-save-button' => 'Speichern',
 	'diqa-cancel-button' => 'Abbrechen',
+	'diqa-import-rescan' => 'Neu scannen',
+	'diqa-import-add' => 'Hinzufügen',
 	'diqa-back-button' => 'Zurück',
 	'diqa-test-button' => 'Testen',
 	'diqa-crawler-type' => 'Crawler-Typ',
@@ -63,7 +65,7 @@ $messages['de'] = array(
 	'diqa-import-attribute-property-hint' => 'Benutze * um alle Attribute/Kategorien zu sehen',
 	'diqa-import-crawled-property-hint' => 'Benutze * um alle Dokumenteneigenschaften zu sehen',
 	'diqa-import-returnvalue-hint' => 'darf auch leer sein. In diesem Fall muss der reguläre Ausdruck mind. 1 Sub-pattern enthalten',
-		
+	'diqa-import-please-enter' => '- Bitte eintragen - ',
 	# JS
 	'diqa-import-open-document' => 'Dokument öffnen',
 	'diqa-import-open-document-dir' => 'Dokument-Verz. öffnen'

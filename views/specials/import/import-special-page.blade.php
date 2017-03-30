@@ -15,6 +15,7 @@
 @include('specials.import.import-special-form', ['edit' => false])
 @include('specials.import.import-special-table', [])
 <div style="margin-top: 20px">
-@include('specials.general.import-special-command', ['command' => 'diqa-import-refresh', 'id' => -1, 'nofloat' => true, 'page' => 'Special:DIQAimport' ])
+@include('specials.general.import-special-command', ['command' => 'diqa-import-refresh', 'id' => -1,  'page' => 'Special:DIQAimport' ])
+@include('specials.general.import-special-command', ['command' => 'diqa-import-rescan', 'id' => -1,  'page' => 'Special:DIQAimport' ])
 </div>
 </div>
