@@ -47,20 +47,22 @@ class SetupDIQAImport extends Maintenance {
 		$db, true);
 		
 		echo "\nSetting up wiki pages ... ";
+		global $IP;
+		$resourcesFolder = "$IP/extensions/Import/resources";
 		$title = Title::newFromText ( "DIQACrawlerDocument", NS_TEMPLATE );
-		$this->createOrUpdateTitle ( $title, file_get_contents ( '../resources/DIQACrawlerDocument.wiki' ) );
+		$this->createOrUpdateTitle ( $title, file_get_contents ( "$resourcesFolder/DIQACrawlerDocument.wiki" ) );
 	
 		$title = Title::newFromText ( "DIQAModificationTime", SMW_NS_PROPERTY );
-		$this->createOrUpdateTitle ( $title, file_get_contents ( '../resources/DIQAModificationTime.wiki' ) );
+		$this->createOrUpdateTitle ( $title, file_get_contents ( "$resourcesFolder/DIQAModificationTime.wiki" ) );
 		
 		$title = Title::newFromText ( "DIQAFileLocation", SMW_NS_PROPERTY );
-		$this->createOrUpdateTitle ( $title, file_get_contents ( '../resources/DIQAFileLocation.wiki' ) );
+		$this->createOrUpdateTitle ( $title, file_get_contents ( "$resourcesFolder/DIQAFileLocation.wiki" ) );
 		
 		$title = Title::newFromText ( "DIQAFilename", SMW_NS_PROPERTY );
-		$this->createOrUpdateTitle ( $title, file_get_contents ( '../resources/DIQAFilename.wiki' ) );
+		$this->createOrUpdateTitle ( $title, file_get_contents ( "$resourcesFolder/DIQAFilename.wiki" ) );
 		
 		$title = Title::newFromText ( "DIQAFilesuffix", SMW_NS_PROPERTY );
-		$this->createOrUpdateTitle ( $title, file_get_contents ( '../resources/DIQAFilesuffix.wiki' ) );
+		$this->createOrUpdateTitle ( $title, file_get_contents ( "$resourcesFolder/DIQAFilesuffix.wiki" ) );
 		echo "\n\n";
 	}
 	
