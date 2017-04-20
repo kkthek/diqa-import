@@ -120,9 +120,19 @@ class ImportSpecialPage extends SpecialPage {
 	 */
 	private function checkPriviledges() {
 		global $wgUser;
-		if (!in_array('sysop', $wgUser->getGroups())) {
+		global $wgGroupPermissions;
+		
+		$authenticated = false;
+		foreach($wgUser->getGroups() as $group) {
+			if (isset($wgGroupPermissions[$group]['diqa-crawl']) && $wgGroupPermissions[$group]['diqa-crawl'] === true) {
+				$authenticated = true;
+			}
+		}
+		
+		if (!$authenticated) {
 			throw new Exception('Not allowed to access', self::ERROR_NOT_ALLOWED);
 		}
+		
 	}
 	
 	/**

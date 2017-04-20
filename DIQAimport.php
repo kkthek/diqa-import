@@ -51,6 +51,11 @@ $dir = dirname( __FILE__ );
 $wgExtensionMessagesFiles['DIQAimport'] = $dir . '/DIQAimport.i18n.php';
 $wgExtensionFunctions[] = 'wfDIQAimportSetup';
 
+// allow sysops to crawl/tag by default. can be revoked in LocalSettings
+global $wgGroupPermissions;
+$wgGroupPermissions['sysop']['diqa-crawl'] = true;
+$wgGroupPermissions['sysop']['diqa-tag'] = true;
+
 global $wgJobClasses;
 $wgJobClasses['ImportDocumentJob'] = 'DIQA\Import\ImportDocumentJob';
 $wgJobClasses['CrawlDirectoryJob'] = 'DIQA\Import\CrawlDirectoryJob';
@@ -101,6 +106,8 @@ $wgResourceModules['ext.enhancedretrieval.diqaimport-assistent'] = array(
 $wgHooks['ParserAfterStrip'][] = 'DIQA\Import\TaggingRuleParserFunction::parserAfterStrip';
 $wgHooks['ParserFirstCallInit'][] = 'wfDIQAimportRegisterParserHooks';
 $wgHooks['fs_saveArticle'][] = 'DIQA\Import\MetadataIndexer::addExtractedMetadata';
+$wgHooks['LoadExtensionSchemaUpdates'][] = 'wfDIQAimportDBUpdate';
+
 function wfDIQAimportRegisterParserHooks(Parser $parser)
 {
 	// Create a function hook associating the name of the parser function with the method to call
@@ -116,6 +123,14 @@ function wfDIQAimportRegisterParserHooks(Parser $parser)
 	}
 }
 
+/**
+ * Updates DB schema (if necessary)
+ */
+function wfDIQAimportDBUpdate() {
+	require_once('maintenance/Setup.php');
+	$setup = new SetupDIQAImport();
+	$setup->execute();
+}
 
 /**
  * Setup import extension
