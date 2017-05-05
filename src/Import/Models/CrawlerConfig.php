@@ -18,6 +18,10 @@ class CrawlerConfig extends Model {
 	
 	public static $INTERVALS = [ 'daily' => 0, 'hourly' => 1];
 	
+	public function getId() {
+		return $this->id;
+	}
+	
 	/**
 	 * Filesystem path to a directory
 	 * where documents will be imported from.
@@ -242,5 +246,16 @@ class CrawlerConfig extends Model {
 	 */
 	public function isForceRun() {
 		return $this->force_run == 1;
+	}
+	
+	/**
+	 * Checks if jobs of the current config did run in the last 60s.
+	 * 
+	 * @return boolean
+	 */
+	public function isRunning() {
+		$cache = \ObjectCache::getInstance(CACHE_DB);
+		$timestamp = $cache->get("DIQA.Import.Jobs.{$this->id}");
+		return (time() - $timestamp) < 60;
 	}
 }

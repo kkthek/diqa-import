@@ -14,6 +14,7 @@ use DIQA\Import\Models\TaggingRule;
 use DIQA\Import\RefreshDocumentsJob;
 use DIQA\Util\TemplateEditor;
 use DIQA\Import\TaggingRuleParserFunction;
+use DIQA\Util\QueryUtils;
 
 if (! defined ( 'MEDIAWIKI' )) {
 	die ();
@@ -167,7 +168,16 @@ class TaggingSpecialPage extends SpecialPage {
 			
 		}
 		
-		
+		// -----------------------------------
+		// wiki operation commands
+		// -----------------------------------
+		if (isset($_POST['diqa_import_startRefresh'])) {
+			$params = [];
+			$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQATagging');
+			$job = new RefreshDocumentsJob($specialPageTitle, $params);
+			JobQueueGroup::singleton()->push( $job );
+			self::removeHintToRefreshSemanticData();
+		}
 		
 		$this->showDefaultContent($html);
 	}
@@ -231,13 +241,39 @@ class TaggingSpecialPage extends SpecialPage {
 	 */
 	private function doEditTaggingRule($id, & $html) {
 	
+		$taggingProperties = $this->getTaggingProperties ();
+
 		$entry = TaggingRule::where('id', $id)->get()->first();
 		$html .= $this->blade->view ()->make ( "specials.tagging.import-special-taggingrule-form",
 				[	'taggingRule' => $entry,
+					'taggingProperties' => $taggingProperties,
 					'edit' => true ] )->render ();
 		
 		self::addHintToRefreshSemanticData();
 	}
+	
+	/**
+	 * Reads the tagging properties. Either from configuration or semantic model.
+	 * 
+	 */
+	 private function getTaggingProperties() {
+		global $dimgAttributes;
+		
+		if (!isset($dimgAttributes) || count($dimgAttributes) == 0) {
+			$taggingProperties = QueryUtils::executeQuery('[[Property:+]]');
+			$taggingProperties = array_map(function($e) { 
+				return $e->getTitle()->getText();
+			}, $taggingProperties);
+		} else {
+			$taggingProperties = $dimgAttributes;
+		}
+		
+		global $wgContLang;
+		$taggingProperties[] = $wgContLang->getNsText(NS_CATEGORY);
+		return $taggingProperties;
+		
+	}
+
 	
 	/**
 	 * Test the rule.
@@ -251,9 +287,12 @@ class TaggingSpecialPage extends SpecialPage {
 	private function doTestTaggingRule($id, $article, $pageId, $testedRule, & $html) {
 	
 		$taggingRule = TaggingRule::where('id', $id)->get()->first();
+		$taggingProperties = $this->getTaggingProperties ();
+		
 		if ($pageId == '') {
 			$html .= $this->blade->view ()->make ( "specials.tagging.import-special-test-taggingrule-form",
 					[	'taggingRule' => $taggingRule, 
+						'taggingProperties' => $taggingProperties,
 						'article' => '',
 						'pageid' => '',
 						'output' => '', 
@@ -305,8 +344,11 @@ class TaggingSpecialPage extends SpecialPage {
 		
 		$currentRuleApplied = $lastRule->id == $taggingRule->id;
 		$anyRuleApplied = $output != '';
+		
+		
 		$html .= $this->blade->view ()->make ( "specials.tagging.import-special-test-taggingrule-form",
 				[	'taggingRule' => $testedRule->id != 0 ? $testedRule : $taggingRule, 
+					'taggingProperties' => $taggingProperties,
 					'article' => $article,
 					'pageid' => $pageId,
 					'output' => $output, 
@@ -346,10 +388,19 @@ class TaggingSpecialPage extends SpecialPage {
 			->orderBy('priority')
 			->get();
 		
+		$ruleClasses = [];
+		
+		foreach($taggingRules as $rule) {
+			$ruleClasses[$rule->getRuleClass()][] = $rule;
+		}
+		
+		$taggingProperties = $this->getTaggingProperties ();
+		
 		$html = $this->blade->view ()->make ( "specials.tagging.import-special-page",
 				[
-					'taggingRules' => $taggingRules,
-					
+					'ruleClasses' => $ruleClasses,
+					'taggingProperties' => $taggingProperties,
+					'needsRefresh' => self::needsHintToRefreshSemanticData(),
 		] )->render ();
 	}
 	
@@ -408,9 +459,26 @@ class TaggingSpecialPage extends SpecialPage {
 	}
 	
 	public static function addHintToRefreshSemanticData() {
-		global $IP;
-		@touch("$IP/images/.diqa-import-needs-refresh");
+		$cache = \ObjectCache::getInstance(CACHE_DB);
+		$cache->set('DIQA.Import.needsSemanticDataRefresh', "true");
 	}
 	
+	/**
+	 * Checks if refresh hint is needed.
+	 *
+	 * @return boolean
+	 */
+	public static function needsHintToRefreshSemanticData() {
+		$cache = \ObjectCache::getInstance(CACHE_DB);
+		return $cache->get('DIQA.Import.needsSemanticDataRefresh') === "true";
+	}
 	
+	/**
+	 * Removes refresh hint.
+	 *
+	 */
+	public static function removeHintToRefreshSemanticData() {
+		$cache = \ObjectCache::getInstance(CACHE_DB);
+		$cache->delete('DIQA.Import.needsSemanticDataRefresh');
+	}
 }

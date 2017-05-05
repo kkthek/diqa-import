@@ -11,6 +11,7 @@ use SMW\StoreFactory;
 use DIQA\Util\TemplateEditor;
 use DIQA\Util\LoggerUtils;
 use DIQA\Import\Models\TaggingRule;
+use DIQA\Import\Models\CrawlerConfig;
 
 /**
  * Imports/Updates a document.
@@ -28,7 +29,11 @@ class ImportDocumentJob extends Job {
 	 */
 	function __construct($title, $params) {
 		parent::__construct ( 'ImportDocumentJob', $title, $params );
-		$this->logger = new LoggerUtils('ImportDocumentJob', 'Import');
+		$jobID = $this->params['job-id'];
+		if (is_null($jobID)) {
+			$jobID = 'from-console';
+		}
+		$this->logger = new LoggerUtils('ImportDocumentJob', 'Import', $jobID);
 	}
 	
 	/**
@@ -40,10 +45,19 @@ class ImportDocumentJob extends Job {
 	 */
 	public function run() {
 		
-		
+		$jobID = $this->params ['job-id'];
 		$filepath = $this->params ['filepath'];
 		$modtime = $this->params ['modtime'];
 		$dryRun = $this->params ['dry-run'];
+		
+		$crawlerConfig = CrawlerConfig::where('id', $jobID)->get()->first();
+		if (!$crawlerConfig->isActive()) {
+			return;
+		}
+		
+		$cache = \ObjectCache::getInstance(CACHE_DB);
+		$cache->set("DIQA.Import.Jobs.$jobID", time());
+		
 		if (! file_exists ( $filepath )) {
 			$this->logger->warn("Skip: File does not exist $filepath.");
 			return;
@@ -222,24 +236,22 @@ class ImportDocumentJob extends Job {
 	
 	private function storeEncounteredMetadata($metadata) {
 		
-		global $IP;
-		$filename = "$IP/images/.diqa-import-metadata";
+		$cache = \ObjectCache::getInstance(CACHE_DB);
 		static $currentMetadata;
 		
 		if (is_null($currentMetadata)) {
-			$content = file_exists($filename) && is_readable($filename) ? file_get_contents($filename) : '';
-			$currentMetadata = explode(',', $content);
+			$currentMetadata = $cache->get('DIQA.Import.metadataProperties');
+			if ($currentMetadata === false) {
+				$currentMetadata = [];
+			}
 		}
 		
 		$newmetadata = array_unique(array_merge(array_keys($metadata), $currentMetadata));
 		
 		if (count($newmetadata) > count($currentMetadata)) {
-			$handle = @fopen($filename, "w");
-			if ($handle !== false) {
-				fwrite($handle, implode(",", $newmetadata));
-				fclose($handle);
-			}
+			$cache->set('DIQA.Import.metadataProperties', $newmetadata);
 			$currentMetadata = $newmetadata;
+			$this->logger->log("Updated DIQA.Import.metadataProperties in ObjectCache");
 		}
 	}
 }

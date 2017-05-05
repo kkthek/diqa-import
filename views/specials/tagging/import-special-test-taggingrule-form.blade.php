@@ -19,7 +19,13 @@ use DIQA\Import\Models\TaggingRule;
 	<span>{{wfMessage('diqa-import-tagging-attribute')->text()}}</span>
 	</td>
 	<td>
-	<input type="text" size="60" name="diqa_taggingrule_attribute" value="{{isset($taggingRule) ? $taggingRule->getRuleClass() : ''}}"/>
+	<select name="diqa_taggingrule_attribute">
+		@foreach($taggingProperties as $p)
+			<option value="{{$p}}" {{isset($taggingRule) && $taggingRule->getRuleClass() == $p ? 'selected=true' : ''}}>
+				{{$p}}
+			</option>
+		@endforeach
+	</select>
 	</td>
 	</tr>
 	

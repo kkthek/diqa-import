@@ -90,9 +90,8 @@ class ImportAssistentSpecialPage extends SpecialPage {
 	private function showDefaultContent(& $html) {
 		
 		// read directory proposals
-		global $IP;
-		$content = file_get_contents("$IP/images/.diqa-import-directories");
-		$lines = explode("\n", $content);
+		$cache = \ObjectCache::getInstance(CACHE_DB);
+		$lines = $cache->set('DIQA.Import.directories');
 		$rootNode = new TreeNode();
 		foreach($lines as $line) {
 			$parts = explode("/", $line);

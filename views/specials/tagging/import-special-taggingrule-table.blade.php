@@ -1,4 +1,5 @@
 <div class="diqa-import-table">
+
 <table>
 <tr>
 <th>{{wfMessage('diqa-import-tagging-attribute')->text()}}</th>
@@ -9,6 +10,7 @@
 <th>{{wfMessage('diqa-import-tagging-priority')->text()}}</th>
 <th></th>
 </tr>
+
 @foreach($taggingRules as $taggingRule)
 	@include('specials.tagging.import-special-taggingrule-row', [ 'taggingRule' => $taggingRule ])
 @endforeach

@@ -24,7 +24,12 @@ class CrawlDirectoryJob extends Job {
 	 */
 	function __construct( $title, $params ) {
 		parent::__construct( 'CrawlDirectoryJob', $title, $params );
-		$this->logger = new LoggerUtils('CrawlDirectoryJob', 'Import');
+		$jobID = $this->params['job-id'];
+		if (is_null($jobID)) {
+			$jobID = 'from-console';
+		}
+		
+		$this->logger = new LoggerUtils('CrawlDirectoryJob', 'Import', $jobID);
 		
 	}
 	
@@ -41,19 +46,24 @@ class CrawlDirectoryJob extends Job {
 	/**
 	 * Create import jobs.
 	 * 
-	 * @param $dryRun
+	 * 
 	 * @return int Number of created jobs
 	 */
-	public function importDocuments($dryRun = false) {
+	public function importDocuments() {
 		$directory = $this->params['directory'];
 		$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQAImport');
 		
 		$jobsCreated = 0;
 		$directory = rtrim($directory, ' /');
 		$directories = [];
-		$this->crawl($directory, function($file) use ($specialPageTitle, & $jobsCreated, $dryRun) {
+		$this->crawl($directory, function($file) use ($specialPageTitle, & $jobsCreated) {
 				
 			$this->logger->log("Processing file: " . $file);
+			
+			global $IP;
+			$jobID = $this->params['job-id'];
+			$cache = \ObjectCache::getInstance(CACHE_DB);
+			$cache->set("DIQA.Import.Jobs.$jobID", time());
 			
 			$ext = pathinfo ( $file, PATHINFO_EXTENSION );
 			$ext = strtolower($ext);
@@ -77,7 +87,8 @@ class CrawlDirectoryJob extends Job {
 					$params = [];
 					$params['filepath'] = $file;
 					$params['modtime'] = date('Y-m-d H:i:s', filemtime($file));
-					$params['dry-run'] = $dryRun;
+					$params['dry-run'] = $this->params['dry-run'];
+					$params['job-id'] = $this->params['job-id'];
 					$job = new ImportDocumentJob($specialPageTitle, $params);
 					JobQueueGroup::singleton()->push( $job );
 					$jobsCreated++;
@@ -93,13 +104,8 @@ class CrawlDirectoryJob extends Job {
 		}, $directories);
 		
 		// store encountered directories
-		global $IP;
-		$handle = @fopen("$IP/images/.diqa-import-directories", "w");
-		if ($handle !== false) {
-			fwrite($handle, implode("\n", $directories));
-			fclose($handle);
-		}
-		
+		$cache = \ObjectCache::getInstance(CACHE_DB);
+		$cache->set('DIQA.Import.directories', $directories);
 		return $jobsCreated;
 	}	
 	
@@ -123,8 +129,10 @@ class CrawlDirectoryJob extends Job {
 		
 		$timestamp = $this->getTimestamp($title);
 		$modtime = filemtime($filepath);
+			
+		$timeOffset = timezone_offset_get(new \DateTimeZone(date_default_timezone_get()), new \DateTime("now"));
 		
-		return $modtime != $timestamp;
+		return $modtime + $timeOffset != $timestamp;
 	}
 	
 	/**

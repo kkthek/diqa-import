@@ -36,11 +36,12 @@ class CrawlDirectory extends Maintenance {
 				if (!is_dir($directory) || !is_readable($directory)) {
 					throw new Exception("Can not access: $directory");
 				}
-				$this->importDirectory($directory);
+				$dryRun = $this->hasOption('dry-run');
+				$this->importDirectory($directory, $dryRun);
 			} else {
 				
-				global $IP;
-				@touch("$IP/images/.diqa-import"); // hint that it is periodically called
+				$cache = ObjectCache::getInstance(CACHE_DB);
+				$cache->set('DIQA.Import.timestamp', time());
 				$dryRun = $this->hasOption('dry-run');
 				$this->processRegisteredImportJobs ($dryRun);
 	
@@ -58,17 +59,19 @@ class CrawlDirectory extends Maintenance {
 	 * @param CrawlerConfig $crawlerConfig
 	 */
 	private function checkCrawlerConfig($crawlerConfig) {
-		global $IP;
+		$cache = ObjectCache::getInstance(CACHE_DB);
+		static $errors = [];
 		if (!is_readable($crawlerConfig->getRootPath())) {
-			$handle = fopen("$IP/images/.diqa-import", "w");
-			fwrite($handle, "\n{$crawlerConfig->getRootPath()} is not readable.");
-			fclose($handle);	
+			$errors[] = "\n{$crawlerConfig->getRootPath()} is not readable.";
+			$crawlerConfig->setStatus("ERROR");
 		}
 		if (!is_dir($crawlerConfig->getRootPath())) {
-			$handle = fopen("$IP/images/.diqa-import", "w");
-			fwrite($handle, "\n{$crawlerConfig->getRootPath()} is not a directory.");
-			fclose($handle);
+			$errors[] = "\n{$crawlerConfig->getRootPath()} is not a directory.";
+			$crawlerConfig->setStatus("ERROR");
 		}
+		$cache->set('DIQA.Import.errors', $errors);
+		
+		$crawlerConfig->save();
 	}
 	
 	/**
@@ -77,11 +80,6 @@ class CrawlDirectory extends Maintenance {
 	 */
 	private function processRegisteredImportJobs($dryRun) {
 		
-		// clear error log
-		global $IP;
-		$handle = fopen("$IP/images/.diqa-import", "w");
-		ftruncate($handle, 0);
-		fclose($handle);
 		
 		// read registered crawler jobs
 		// and select those which should run
@@ -94,6 +92,9 @@ class CrawlDirectory extends Maintenance {
 			}
 			
 			$this->checkCrawlerConfig($e);
+			if ($e->getStatus() == 'ERROR') {
+				continue;
+			}
 			
 			if ($e->notYetRun() || $e->isForceRun()) {
 				$toRun[] = $e;
@@ -115,12 +116,11 @@ class CrawlDirectory extends Maintenance {
 		foreach($toRun as $r) {
 			
 			$r->updateLastRun();
-			$r->setStatus("Creating import jobs...");
 			$r->forceRun(false);
 			$r->save();
 			$this->logger->log("Creating import jobs for: ".$r->getRootPath());
-			$jobsCreated = $this->importDirectory($r->getRootPath(), $dryRun);
-			$r->setDocumentsProcessed($jobsCreated);
+			$jobsCreated = $this->importDirectory($r->getRootPath(), $dryRun, $r->getId());
+			$r->setDocumentsProcessed($r->getDocumentsProcessed() + $jobsCreated);
 			$r->setStatus("OK");
 			$r->save();
 		}
@@ -132,9 +132,10 @@ class CrawlDirectory extends Maintenance {
 	 * 
 	 * @param $directory
 	 * @param $dryRun
+	 * @param $jobID (optional)
 	 * @return int Number of created import jobs
 	 */
-	private function importDirectory($directory, $dryRun) {
+	private function importDirectory($directory, $dryRun, $jobID = NULL) {
 		
 		ImportSpecialPage::checkDirectory($directory);
 		
@@ -142,9 +143,11 @@ class CrawlDirectory extends Maintenance {
 		
 		$params = [];
 		$params['directory'] = $directory;
+		$params['dry-run'] = $dryRun;
+		$params['job-id'] = $jobID;
 		$job = new CrawlDirectoryJob($specialPageTitle, $params);
 		
-		return $job->importDocuments($dryRun);
+		return $job->importDocuments();
 	}
 	
 	/**

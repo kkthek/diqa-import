@@ -15,6 +15,7 @@ use DIQA\Import\RefreshDocumentsJob;
 use DIQA\Util\TemplateEditor;
 use DIQA\Import\TaggingRuleParserFunction;
 use Carbon\Carbon;
+use DIQA\Util\FileUtils;
 
 if (! defined ( 'MEDIAWIKI' )) {
 	die ();
@@ -174,15 +175,37 @@ class ImportSpecialPage extends SpecialPage {
 			$this->readMountedFolders();
 		}
 		
-		// -----------------------------------
-		// wiki operation commands
-		// -----------------------------------
-		if (isset($_POST['diqa_import_startRefresh'])) {
-			$params = [];
-			$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQAImport');
-			$job = new RefreshDocumentsJob($specialPageTitle, $params);
-			JobQueueGroup::singleton()->push( $job );
-			self::removeHintToRefreshSemanticData();
+		if (isset($_POST['diqa-deactivate-job'])) {
+			$id = $_POST['diqa-deactivate-job'];
+			$this->setActivationStatus($id, false, $html );
+		}
+		
+		if (isset($_POST['diqa-activate-job'])) {
+			$id = $_POST['diqa-activate-job'];
+			$this->setActivationStatus($id, true, $html );
+		}
+		
+		if (isset($_GET['showLog'])) {
+			global $IP;
+			
+			$date = (new \DateTime('now', new \DateTimeZone(date_default_timezone_get())))->format("Y-m-d");
+			if (isset($_GET['jobID'])) {
+				$jobID = $_GET['jobID'];
+				$path = "$IP/extensions/Import/logFiles/Import_{$jobID}_{$date}.log";
+			} else {
+				$path = "$IP/extensions/Import/logFiles/Import_{$date}.log";
+			}
+			if (!file_exists($path)) {
+				// use general log as fallback
+				$path = "$IP/extensions/Import/logFiles/Import_{$date}.log";
+				if (!file_exists($path)) {
+					echo "Log not available";
+					die();
+				}
+			}
+			$lines = FileUtils::last_lines($path, 1000);
+			echo implode('<br>', $lines);
+			die();
 		}
 		
 		$this->showDefaultContent($html);
@@ -283,6 +306,20 @@ class ImportSpecialPage extends SpecialPage {
 	}
 	
 	/**
+	 * Deactivate job
+	 *
+	 * @param id
+	 * @param bool $status 
+	 * @param string (out) html
+	 */
+	private function setActivationStatus($id, $status, & $html) {
+	
+		$entry = CrawlerConfig::where('id', $id)->get()->first();
+		$entry->active = $status ? 1 : 0;
+		$entry->save();
+	}
+	
+	/**
 	 * Shows the default content of the DIQAimport special page.
 	 * 
 	 * @param string (out) $html
@@ -298,21 +335,20 @@ class ImportSpecialPage extends SpecialPage {
 				[	'entries' => $crawlerConfigs, 
 					'taggingRules' => $taggingRules,
 					'isCrawlerActive' => self::isCrawlCommandCalled(), 
-					'needsRefresh' => self::needsHintToRefreshSemanticData(),
 					'crawlerErrors' => self::getCrawlerErrors()
 		] )->render ();
 	}
 	
 	public static function isCrawlCommandCalled() {
-		global $IP;
-		$modtime = @filemtime("$IP/images/.diqa-import");
-		return (time() - $modtime) < 90;
+		$cache = \ObjectCache::getInstance(CACHE_DB);
+		$timestamp = $cache->get('DIQA.Import.timestamp');
+		return (time() - $timestamp) < 90;
 	}
 	
 	public static function getCrawlerErrors() {
-		global $IP;
-		$errors = file_get_contents("$IP/images/.diqa-import");
-		return array_filter(explode("\n",$errors), function($e) { return $e != ''; });
+		$cache = \ObjectCache::getInstance(CACHE_DB);
+		$errors = $cache->get('DIQA.Import.errors');
+		return array_filter($errors, function($e) { return $e != ''; });
 	}
 	
 	/**
@@ -326,37 +362,25 @@ class ImportSpecialPage extends SpecialPage {
 	 * @return boolean true if directory exists and is readible
 	 */
 	public static function checkDirectory($directory) {
+		return self::_checkDirectory($directory, $directory);
+	}
+	
+	public static function _checkDirectory($directory, $originalDir) {
+		
 		if (is_dir($directory) && is_readable($directory)) {
 			return true;
 		}
 		if (is_dir($directory) && !is_readable($directory)) {
-			throw new Exception("Not readable : $directory", self::ERROR_NOT_READABLE);
+			throw new Exception("Not readable: $directory", self::ERROR_NOT_READABLE);
 		}
 		if (!is_dir($directory)) {
 			$lastpos = strrpos($directory, '/');
 			if ($lastpos === false) {
-				throw new Exception("Not a directory : $directory", self::ERROR_NO_DIRECTORY);
+				throw new Exception("Could not access directory: $originalDir", self::ERROR_NO_DIRECTORY);
 			}
-			return self::checkDirectory(substr($directory, 0, $lastpos));
+			return self::_checkDirectory(substr($directory, 0, $lastpos), $originalDir);
 		}
 	}
 	
-	/**
-	 * Checks if refresh hint is needed.
-	 * 
-	 * @return boolean
-	 */
-	public static function needsHintToRefreshSemanticData() {
-		global $IP;
-		return file_exists("$IP/images/.diqa-import-needs-refresh");
-	}
 	
-	/**
-	 * Removes refresh hint.
-	 * 
-	 */
-	public static function removeHintToRefreshSemanticData() {
-		global $IP;
-		@unlink("$IP/images/.diqa-import-needs-refresh");
-	}
 }

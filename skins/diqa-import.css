@@ -43,12 +43,18 @@ div.diqa-import-error {
 	margin-top: 10px;
 	background-color: #f45342;
 	padding: 10px;
+	border-radius: 10px;
+}
+
+tr.diqa-import-error-row {
+	background-color: #f45342 !important;
 }
 
 div.diqa-import-warning {
 	margin-top: 10px;
 	background-color: #f4a442;
 	padding: 10px;
+	border-radius: 10px;
 }
 
 div.diqa-import-backlink {
@@ -70,8 +76,27 @@ form.diqa-import-command-nofloat a {
 }
 
 div.diqa-import-table table tr:nth-child(odd) {
-    background-color: #ccc;
+    background-color: #ddd;
 }
 div.diqa-import-table table tr:nth-child(even) {
-    background-color: #fff;
+    background-color: #eee;
+}
+
+div#diqa-open-log {
+	margin-top:10px;
+}
+
+div.diqa-taggingrule-container {
+	width: 200px;
+	height: 30px;
+	margin-top: 10px;
+	border-radius: 10px;
+	background-color: #dce0e2;
+	cursor: pointer;
+}
+
+div.diqa-taggingrule-container span {
+    position: relative;
+	left: 10px;
+    top: 5px;
 }

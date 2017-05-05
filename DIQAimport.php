@@ -116,7 +116,10 @@ function wfDIQAimportRegisterParserHooks(Parser $parser)
 	// add JS modules
 	global $wgOut, $wgTitle;
 	
-	$wgOut->addModules('ext.enhancedretrieval.diqaimport');
+	if (!is_null($wgTitle) && ($wgTitle->getNamespace() == NS_SPECIAL && 
+			(strtolower($wgTitle->getText()) == 'diqaimport') || strtolower($wgTitle->getText()) == 'diqatagging')) {
+		$wgOut->addModules('ext.enhancedretrieval.diqaimport');
+	}
 	
 	if (!is_null($wgTitle) && ($wgTitle->getNamespace() == NS_SPECIAL && $wgTitle->getText() == 'DIQAImportAssistent')) {
 		$wgOut->addModules('ext.enhancedretrieval.diqaimport-assistent');
@@ -149,7 +152,8 @@ function wfDIQAimportSetup() {
 	global $wgSpecialPages;
 	$wgSpecialPages['DIQAImport'] = array('DIQA\Import\Specials\ImportSpecialPage');
 	$wgSpecialPages['DIQATagging'] = array('DIQA\Import\Specials\TaggingSpecialPage');
-	$wgSpecialPages['DIQAImportAssistent'] = array('DIQA\Import\Specials\ImportAssistentSpecialPage');
+	// temporarily deactivate assistent
+	//$wgSpecialPages['DIQAImportAssistent'] = array('DIQA\Import\Specials\ImportAssistentSpecialPage');
 	
 	wfDIQAInitializeEloquent();
 	
@@ -188,11 +192,13 @@ function wfDIQAimportSetup() {
 }
 
 function wfDIQAGetMetadata() {
-	global $IP;
-	$filename = "$IP/images/.diqa-import-metadata";
+	$cache = ObjectCache::getInstance(CACHE_DB);
+
+	$list = $cache->get('DIQA.Import.metadataProperties');
 	
-	$content = file_exists($filename) && is_readable($filename) ? file_get_contents($filename) : '';
-	$list =  explode(',', $content);
+	if ($list === false) {
+		return [];
+	}
 	usort($list, function($e, $f) {
 		return strcmp(strtolower($e), strtolower($f));
 	});

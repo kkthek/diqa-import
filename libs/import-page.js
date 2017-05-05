@@ -45,6 +45,10 @@
 			}
 
 		});
+		
+		$('div.diqa-taggingrule-container').click(function(event) { 
+			$(event.target).closest('div').next().toggle();
+		});
 
 		/**
 		 * Autocomplete categories for return value.
@@ -66,46 +70,7 @@
 
 					},
 					success : function(data) {
-						response($.map(data.sfautocomplete, function(obj, i) {
-							return {
-								label : obj.title,
-								value : obj.title,
-								data : {
-									id : obj.id,
-									ns : obj.ns
-								}
-							};
-						}));
-					}
-				});
-			},
-			select : function(event, ui) {
-
-			}
-
-		});
-
-		/**
-		 * Autocomplete properties, categories for rule class
-		 * 
-		 */
-		$("input[name=diqa_taggingrule_attribute]").autocomplete({
-			source : function(request, response) {
-
-				$.ajax({
-					type : "GET",
-					url : mw.util.wikiScript('api'),
-					dataType : "jsonp",
-					data : {
-						action : "diqa_autocomplete",
-						format : "json",
-						substr : request.term,
-						property : DIQA.IMPORT.fsgTitleProperty,
-						schema : "Property,Category"
-
-					},
-					success : function(data) {
-						response($.map(data.sfautocomplete, function(obj, i) {
+						response($.map(data.pfautocomplete, function(obj, i) {
 							return {
 								label : obj.title,
 								value : obj.title,
@@ -193,8 +158,8 @@
 						schema : "File"
 
 					},
-					success : function(data) {
-						response($.map(data.sfautocomplete, function(obj, i) {
+					success : function(data) { 
+						response($.map(data.pfautocomplete, function(obj, i) {
 							return {
 								label : obj.title + " ["+obj.data.fullTitle+"]",
 								value : obj.title + " ["+obj.data.fullTitle+"]",
