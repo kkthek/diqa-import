@@ -1,4 +1,5 @@
 [[DIQAModificationTime::{{{DIQAModificationTime}}}|]]
 [[DIQAFileLocation::{{{DIQAFileLocation}}}|]]
+[[DIQAFilePath::{{{DIQAFilePath}}}|]]
 [[DIQAFilename::{{{DIQAFilename}}}|]]
 [[DIQAFilesuffix::{{{DIQAFilesuffix}}}|]]

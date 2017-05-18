@@ -68,6 +68,24 @@ class CrawlDirectoryJob extends Job {
 			$ext = pathinfo ( $file, PATHINFO_EXTENSION );
 			$ext = strtolower($ext);
 				
+			global $wgFileExtensions;
+			if (!in_array($ext, $wgFileExtensions)) {
+				$this->logger->warn("Not supported filetype: $file");
+				return;
+			}
+			
+			if (!$this->isModified($file)) {
+				$this->logger->log("Not modified, skipping: $file");
+				return;
+			}
+			
+			$this->logger->log("Create import job for: $file");
+			$params = [];
+			$params['filepath'] = $file;
+			$params['modtime'] = date('Y-m-d H:i:s', filemtime($file));
+			$params['dry-run'] = $this->params['dry-run'];
+			$params['job-id'] = $this->params['job-id'];
+			
 			switch($ext) {
 		
 				case "doc":
@@ -78,29 +96,21 @@ class CrawlDirectoryJob extends Job {
 				case "ppt":
 				case "pptx":
 						
-					if (!$this->isModified($file)) {
-						$this->logger->log("Not modified, skipping: $file");
-						return;
-					}
-						
-					$this->logger->log("Create import job for: $file");
-					$params = [];
-					$params['filepath'] = $file;
-					$params['modtime'] = date('Y-m-d H:i:s', filemtime($file));
-					$params['dry-run'] = $this->params['dry-run'];
-					$params['job-id'] = $this->params['job-id'];
 					$job = new ImportDocumentJob($specialPageTitle, $params);
 					JobQueueGroup::singleton()->push( $job );
 					$jobsCreated++;
 					break;
-						
-					default:
+
+				default:
 					
-					$this->logger->warn("Not supported filetype: $file");
-		
 					
+					$job = new ImportImageJob($specialPageTitle, $params);
+					JobQueueGroup::singleton()->push( $job );
+					$jobsCreated++;
 					break;
-					}
+					
+				
+			}
 		}, $directories);
 		
 		// store encountered directories

@@ -1,0 +1,2 @@
+Stores the file path
+[[Has type::Text|:Text]]

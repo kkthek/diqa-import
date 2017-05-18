@@ -58,6 +58,9 @@ class SetupDIQAImport extends Maintenance {
 		$title = Title::newFromText ( "DIQAFileLocation", SMW_NS_PROPERTY );
 		$this->createOrUpdateTitle ( $title, file_get_contents ( "$resourcesFolder/DIQAFileLocation.wiki" ) );
 		
+		$title = Title::newFromText ( "DIQAFilePath", SMW_NS_PROPERTY );
+		$this->createOrUpdateTitle ( $title, file_get_contents ( "$resourcesFolder/DIQAFilePath.wiki" ) );
+		
 		$title = Title::newFromText ( "DIQAFilename", SMW_NS_PROPERTY );
 		$this->createOrUpdateTitle ( $title, file_get_contents ( "$resourcesFolder/DIQAFilename.wiki" ) );
 		

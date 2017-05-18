@@ -115,7 +115,9 @@ class TaggingSpecialPage extends SpecialPage {
 		
 		if (isset ($_POST['diqa-import-copy-rule'])) {
 			$id = $_POST['diqa-import-copy-rule'];
-			$this->doCopyTaggingRule ($id, $html );
+			$copy = $this->doCopyTaggingRule ($id, $html );
+			$this->doEditTaggingRule ($copy->id, $html );
+			return;
 		}
 		
 		if (isset ($_POST['diqa-import-test-rule']) 
@@ -289,6 +291,13 @@ class TaggingSpecialPage extends SpecialPage {
 		$taggingRule = TaggingRule::where('id', $id)->get()->first();
 		$taggingProperties = $this->getTaggingProperties ();
 		
+		// if article is actually the page-ID
+		$mwTitle = Title::newFromText($article);
+		if (!is_null($mwTitle) && $mwTitle->exists()) {
+			$pageId = $mwTitle->getPrefixedText();
+		}
+		
+		// if page-ID was not given and could not be determined from article, stop here
 		if ($pageId == '') {
 			$html .= $this->blade->view ()->make ( "specials.tagging.import-special-test-taggingrule-form",
 					[	'taggingRule' => $taggingRule, 
@@ -372,7 +381,7 @@ class TaggingSpecialPage extends SpecialPage {
 		}
 		$copy = TaggingRule::copy($entry);
 		$copy->save();
-		
+		return $copy;
 	}
 	
 	
@@ -446,6 +455,9 @@ class TaggingSpecialPage extends SpecialPage {
 			throw new Exception("invalid XML document");
 		}
 		$rules = $xmlDoc->xpath('//rule');
+		
+		TaggingRule::where('id', '>=', 0)->delete();
+		
 		foreach($rules as $rule) {
 			$entry = new TaggingRule();
 			$entry->rule_class = $rule->rule_class[0];
@@ -456,6 +468,8 @@ class TaggingSpecialPage extends SpecialPage {
 			$entry->return_value = $rule->return_value[0];
 			$entry->save();
 		}
+		
+		self::addHintToRefreshSemanticData();
 	}
 	
 	public static function addHintToRefreshSemanticData() {

@@ -46,8 +46,18 @@
 
 		});
 		
-		$('div.diqa-taggingrule-container').click(function(event) { 
-			$(event.target).closest('div').next().toggle();
+		$('div.diqa-taggingrule-header').click(function(event) { 
+			
+			$(event.target).closest('div.diqa-taggingrule-container')
+				.find('div.diqa-taggingrule-table').toggle();
+		});
+		
+		$('form#diqa-import-importtagging').submit(function() { 
+			if ($('input[name=diqa-import-importtagging]').get(0).files.length === 0) {
+			    alert(mw.msg( 'diqa-import-no-file-selected' ));
+			    return false;
+			}
+			return true;
 		});
 
 		/**

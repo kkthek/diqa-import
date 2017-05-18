@@ -16,6 +16,7 @@ use DIQA\Util\TemplateEditor;
 use DIQA\Import\TaggingRuleParserFunction;
 use Carbon\Carbon;
 use DIQA\Util\FileUtils;
+use DIQA\Util\LoggerUtils;
 
 if (! defined ( 'MEDIAWIKI' )) {
 	die ();
@@ -47,6 +48,9 @@ class ImportSpecialPage extends SpecialPage {
 	 */
 	public function execute($par) {
 		global $wgOut, $wgRequest, $wgServer, $wgScriptPath;
+		
+		// initialize logger
+		new LoggerUtils('ImportSpecialPage', 'Import');
 		
 		$wgOut->setPageTitle ( wfMessage ( 'diqa-import-title' )->text () );
 		
@@ -186,32 +190,39 @@ class ImportSpecialPage extends SpecialPage {
 		}
 		
 		if (isset($_GET['showLog'])) {
-			global $IP;
-			
-			$date = (new \DateTime('now', new \DateTimeZone(date_default_timezone_get())))->format("Y-m-d");
-			if (isset($_GET['jobID'])) {
-				$jobID = $_GET['jobID'];
-				$path = "$IP/extensions/Import/logFiles/Import_{$jobID}_{$date}.log";
-			} else {
-				$path = "$IP/extensions/Import/logFiles/Import_{$date}.log";
-			}
-			if (!file_exists($path)) {
-				// use general log as fallback
-				$path = "$IP/extensions/Import/logFiles/Import_{$date}.log";
-				if (!file_exists($path)) {
-					echo "Log not available";
-					die();
-				}
-			}
-			$lines = FileUtils::last_lines($path, 1000);
-			echo implode('<br>', $lines);
+			$jobID = isset($_GET['jobID']) ? $_GET['jobID'] : false;
+			$this->doShowLog($jobID);
 			die();
 		}
 		
 		$this->showDefaultContent($html);
 	}
 	
-	
+	/**
+	 * Echos the last 1000 lines of the given Job-Log. If $jobID === false,
+	 * it returns the general Import log.
+	 * 
+	 * @param int $jobID
+	 */
+	private function doShowLog($jobID) {
+		$logDir = LoggerUtils::getLogDir();
+		$date = (new \DateTime('now', new \DateTimeZone(date_default_timezone_get())))->format("Y-m-d");
+		if ($jobID !== false) {
+			$path = "$logDir/Import/Import_{$jobID}_{$date}.log";
+		} else {
+			$path = "$logDir/Import/Import_{$date}.log";
+		}
+		if (!file_exists($path)) {
+			// use general log as fallback
+			$path = "$logDir/Import/Import_{$date}.log";
+			if (!file_exists($path)) {
+				echo "Log not available";
+				return;
+			}
+		}
+		$lines = FileUtils::last_lines($path, 1000);
+		echo implode('<br>', $lines);
+	}
 	 /**
 	  * Adds or updates an entry.
 	  * 
@@ -348,6 +359,10 @@ class ImportSpecialPage extends SpecialPage {
 	public static function getCrawlerErrors() {
 		$cache = \ObjectCache::getInstance(CACHE_DB);
 		$errors = $cache->get('DIQA.Import.errors');
+		$logFileErrorHint = $cache->get('DIQA.Util.logFileNotWriteable');
+		if ($logFileErrorHint !== false) {
+			$errors[] = "Log file can not be written. Please check $logFileErrorHint";
+		}
 		return array_filter($errors, function($e) { return $e != ''; });
 	}
 	

@@ -76,7 +76,9 @@ $messages['de'] = array(
 		
 	# JS
 	'diqa-import-open-document' => 'Dokument öffnen',
-	'diqa-import-open-document-dir' => 'Dokument-Verz. öffnen'
+	'diqa-import-open-document-page' => 'Dokumentseite öffnen',
+	'diqa-import-open-document-dir' => 'Dokument-Verz. öffnen',
+	'diqa-import-no-file-selected' => 'Keine Regel-Datei ausgewählt'
 );
 
 $magicWords['de'] = array(

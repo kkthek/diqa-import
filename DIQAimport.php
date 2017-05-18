@@ -34,6 +34,7 @@ global $wgExtensionMessagesFiles;
 global $wgHooks;
 global $wgResourceModules;
 global $wgExtensionFunctions;
+global $wgActions;
 
 // register extension
 $wgExtensionCredits[ 'diqa' ][] = array(
@@ -58,16 +59,18 @@ $wgGroupPermissions['sysop']['diqa-tag'] = true;
 
 global $wgJobClasses;
 $wgJobClasses['ImportDocumentJob'] = 'DIQA\Import\ImportDocumentJob';
+$wgJobClasses['ImportImageJob'] = 'DIQA\Import\ImportImageJob';
 $wgJobClasses['CrawlDirectoryJob'] = 'DIQA\Import\CrawlDirectoryJob';
 $wgJobClasses['RefreshDocumentsJob'] = 'DIQA\Import\RefreshDocumentsJob';
 
 $GLOBALS['wgAPIModules']['diqa_import'] = 'DIQA\Import\Api\DIQAImportAPI';
+$wgActions['directannotation'] = 'DIQA\Import\Search\FacetedSearchExtensions';
 
-$wgResourceModules['ext.enhancedretrieval.diqaimport'] = array(
+$wgResourceModules['ext.diqaimport.core'] = array(
 		'localBasePath' => $dir,
 		'remoteExtPath' => 'Import',
 		'scripts' => array(
-				'libs/xfs_facetedsearch.js',
+				
 				'libs/import-page.js'
 				
 		),
@@ -76,13 +79,30 @@ $wgResourceModules['ext.enhancedretrieval.diqaimport'] = array(
 		
 		'dependencies' => [ 'jquery.ui.autocomplete', 'jquery.ui.datepicker', 'jquery.tablesorter'],
 		'messages' => array(
-				'diqa-import-open-document',
-				'diqa-import-open-document-dir',
+			'diqa-import-no-file-selected'
 				
 		),
 );
 
-$wgResourceModules['ext.enhancedretrieval.diqaimport-assistent'] = array(
+$wgResourceModules['ext.diqaimport.enhancedretrieval'] = array(
+		'localBasePath' => $dir,
+		'remoteExtPath' => 'Import',
+		'scripts' => array(
+				'libs/xfs_facetedsearch.js',
+
+		),
+		'styles' => [],
+
+		'dependencies' => [],
+		'messages' => array(
+				'diqa-import-open-document',
+				'diqa-import-open-document-page',
+				'diqa-import-open-document-dir',
+
+		),
+);
+
+$wgResourceModules['ext.diqaimport.assistent'] = array(
 		'localBasePath' => $dir,
 		'remoteExtPath' => 'Import',
 		'scripts' => array(
@@ -116,13 +136,15 @@ function wfDIQAimportRegisterParserHooks(Parser $parser)
 	// add JS modules
 	global $wgOut, $wgTitle;
 	
+	$wgOut->addModules('ext.diqaimport.enhancedretrieval');
+	
 	if (!is_null($wgTitle) && ($wgTitle->getNamespace() == NS_SPECIAL && 
 			(strtolower($wgTitle->getText()) == 'diqaimport') || strtolower($wgTitle->getText()) == 'diqatagging')) {
-		$wgOut->addModules('ext.enhancedretrieval.diqaimport');
+		$wgOut->addModules('ext.diqaimport.core');
 	}
 	
 	if (!is_null($wgTitle) && ($wgTitle->getNamespace() == NS_SPECIAL && $wgTitle->getText() == 'DIQAImportAssistent')) {
-		$wgOut->addModules('ext.enhancedretrieval.diqaimport-assistent');
+		$wgOut->addModules('ext.diqaimport.assistent');
 	}
 }
 
