@@ -73,6 +73,9 @@ $messages['de'] = array(
 	'diqa-import-please-enter' => '- Bitte eintragen - ',
 	'diqa-import-need-smw-refresh' => 'ACHTUNG: Semantische Daten müssen aktualisiert werden.',
 	'diqa-smw-refresh' => 'Semantische Daten aktualisieren',
+	'diqa-import-open-folder-picker' => 'Öffne Crawling-Folders',
+	'diqa-import-crawling-folder-dialog-header' => 'Crawled Folders',
+	'diqa-import-crawling-folder-dialog-description' => 'Wählen Sie ein Verzeichnis. (wenn nichts angezeigt wird, müssen Sie crawlen)',
 		
 	# JS
 	'diqa-import-open-document' => 'Dokument öffnen',

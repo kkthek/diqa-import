@@ -4,6 +4,8 @@ namespace DIQA\Import\Api;
 
 use DIQA\Import\Specials\ImportSpecialPage;
 use Philo\Blade\Blade;
+use DIQA\Import\Models\CrawlerConfig;
+use DIQA\Util\Data\TreeNode;
 /**
  * DIQA import API ajax interface.
  * 
@@ -31,12 +33,28 @@ class DIQAImportAPI extends \ApiBase {
 		$result = [];
 		
 		switch($command) {
+			
 			case "crawler-status":
+				
 				$result['html'] = $this->blade->view ()->make ( "specials.import.import-special-error-tag",
-				[	
-				'isCrawlerActive' => ImportSpecialPage::isCrawlCommandCalled(),
-				'crawlerErrors' => ImportSpecialPage::getCrawlerErrors()
-				] )->render ();
+					[	
+					'isCrawlerActive' => ImportSpecialPage::isCrawlCommandCalled(),
+					'crawlerErrors' => ImportSpecialPage::getCrawlerErrors()
+					] )
+				->render ();
+				break;
+
+			case "get-folder-picker":
+				
+				$cache = \ObjectCache::getInstance(CACHE_DB);
+				$tree = $cache->get('DIQA.Import.directories');
+				
+				$result['html'] = $this->blade->view ()->make ( "specials.dialogs.import-special-folder-dialog",
+				[ 
+					'tree' => $tree->getTreeAsJSON(),
+				])
+				->render ();
+				
 				break;
 				
 			default:
@@ -48,6 +66,7 @@ class DIQAImportAPI extends \ApiBase {
 		$resultElement->setIndexedTagName ( $result, 'p' );
 		$resultElement->addValue ( null, 'diqaimport', $result );
 	}
+	
 	protected function getAllowedParams() {
 		return array (
 				

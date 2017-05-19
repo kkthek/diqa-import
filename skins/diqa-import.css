@@ -113,3 +113,7 @@ input.ui-autocomplete-loading {
     background-size: 16px 16px;
     background-repeat: no-repeat;
 }
+
+a.diqa-import-js-button {
+	cursor: pointer;
+}

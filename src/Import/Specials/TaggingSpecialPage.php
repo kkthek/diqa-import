@@ -165,7 +165,7 @@ class TaggingSpecialPage extends SpecialPage {
 		
 		if (isset($_FILES['diqa-import-importtagging'])) {
 			$file = $_FILES['diqa-import-importtagging']['tmp_name'];
-			$this->doImportTaggingRules ( $file );
+			self::doImportTaggingRules ( $file );
 
 			
 		}
@@ -448,7 +448,7 @@ class TaggingSpecialPage extends SpecialPage {
 	 *
 	 * @param file The file location
 	 */
-	private function doImportTaggingRules($file) {
+	public static function doImportTaggingRules($file) {
 		$xml = file_get_contents($file);
 		$xmlDoc = @simplexml_load_string ( $xml );
 		if ($xmlDoc === false) {

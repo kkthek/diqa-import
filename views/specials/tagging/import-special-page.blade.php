@@ -31,4 +31,4 @@
 
 </div>
 </div>
-
+<div id="folder-picker-dialog"/>

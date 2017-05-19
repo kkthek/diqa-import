@@ -133,7 +133,7 @@ class CrawlDirectory extends Maintenance {
 	 * @param $directory
 	 * @param $dryRun
 	 * @param $jobID (optional)
-	 * @return int Number of created import jobs
+	 * @return int Number of created import jobs for *new* documents
 	 */
 	private function importDirectory($directory, $dryRun, $jobID = NULL) {
 		

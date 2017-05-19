@@ -70,14 +70,17 @@ $wgResourceModules['ext.diqaimport.core'] = array(
 		'localBasePath' => $dir,
 		'remoteExtPath' => 'Import',
 		'scripts' => array(
-				
-				'libs/import-page.js'
+				'libs/fancytree/jquery.fancytree-all.js',
+				'libs/import-page-crawler.js',
+				'libs/import-page-tagging.js'
 				
 		),
-		'styles' => [ 'skins/diqa-import.css'
+		'styles' => [ 
+					  'skins/diqa-import.css',
+					  'libs/fancytree/skin-win8/ui.fancytree.min.css'
 				    ],
 		
-		'dependencies' => [ 'jquery.ui.autocomplete', 'jquery.ui.datepicker', 'jquery.tablesorter'],
+		'dependencies' => [ 'jquery.ui.autocomplete', 'jquery.ui.datepicker', 'jquery.tablesorter', 'jquery.ui.core', 'jquery.effects.core', 'jquery.ui.slider' ],
 		'messages' => array(
 			'diqa-import-no-file-selected'
 				

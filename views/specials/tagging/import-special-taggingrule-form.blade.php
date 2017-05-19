@@ -59,6 +59,7 @@ use DIQA\Import\Models\TaggingRule;
 	</td>
 	<td>
 	<input type="text" size="60" name="diqa_taggingrule_parameters" value="{{isset($taggingRule) ? $taggingRule->getParameters() : ''}}"/>
+	@include('specials.general.import-special-js-button', ['command' => 'diqa-import-open-folder-picker' ])
 	</td>
 	</tr>
 	

@@ -9,6 +9,7 @@ use JobQueueGroup;
 use SMW\StoreFactory;
 use DIQA\Util\QueryUtils;
 use DIQA\Util\LoggerUtils;
+use DIQA\Util\Data\TreeNode;
 
 /**
  * Crawls a directory and imports documents.
@@ -47,16 +48,16 @@ class CrawlDirectoryJob extends Job {
 	 * Create import jobs.
 	 * 
 	 * 
-	 * @return int Number of created jobs
+	 * @return int Number of jobs created for *new* documents
 	 */
 	public function importDocuments() {
 		$directory = $this->params['directory'];
 		$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQAImport');
 		
-		$jobsCreated = 0;
+		$jobsForNewDocuments = 0;
 		$directory = rtrim($directory, ' /');
 		$directories = [];
-		$this->crawl($directory, function($file) use ($specialPageTitle, & $jobsCreated) {
+		$this->crawl($directory, function($file) use ($specialPageTitle, & $jobsForNewDocuments) {
 				
 			$this->logger->log("Processing file: " . $file);
 			
@@ -79,6 +80,8 @@ class CrawlDirectoryJob extends Job {
 				return;
 			}
 			
+			$isNewDocument = is_null($this->getTitleForFileLocation($file));
+			
 			$this->logger->log("Create import job for: $file");
 			$params = [];
 			$params['filepath'] = $file;
@@ -97,27 +100,58 @@ class CrawlDirectoryJob extends Job {
 				case "pptx":
 						
 					$job = new ImportDocumentJob($specialPageTitle, $params);
-					JobQueueGroup::singleton()->push( $job );
-					$jobsCreated++;
 					break;
 
 				default:
 					
-					
 					$job = new ImportImageJob($specialPageTitle, $params);
-					JobQueueGroup::singleton()->push( $job );
-					$jobsCreated++;
 					break;
-					
 				
 			}
+			
+			JobQueueGroup::singleton()->push( $job );
+			if ($isNewDocument) {
+				$jobsForNewDocuments++;
+			}
+			
 		}, $directories);
 		
-		// store encountered directories
+		// store encountered directories as TreeNode object
 		$cache = \ObjectCache::getInstance(CACHE_DB);
-		$cache->set('DIQA.Import.directories', $directories);
-		return $jobsCreated;
+		$oldTree = $cache->get('DIQA.Import.directories');
+		$tree = $this->convertIntoTreeObject($oldTree, $directories);
+		$cache->set('DIQA.Import.directories', $tree);
+		return $jobsForNewDocuments;
 	}	
+	
+	/**
+	 * Stores encountered directories as TreeNode object.
+	 * 
+	 * @param array $directories Paths into filesystem
+	 * @return \DIQA\Util\Data\TreeNode
+	 */
+	 private function convertIntoTreeObject($oldTree, $directories) {
+	 	if (is_null($oldTree) || !($oldTree instanceof TreeNode)) {
+			$root = new TreeNode();
+	 	} else {
+	 		$root = $oldTree;
+	 	}
+		foreach($directories as $f) {
+			$currentNode = $root;
+			$parts = explode('/', $f);
+			foreach($parts as $p) {
+				if (trim($p) == '') continue;
+				if ($currentNode->containsChildWithTitle($p)) {
+					$currentNode = $currentNode->getChildByTitle($p);
+				} else {
+					$newNode = new TreeNode($p, $p);
+					$currentNode->addChild($newNode);
+					$currentNode = $newNode;
+				}
+			}
+		}
+		return $root;
+	}
 	
 	/**
 	 * Checks if the modification timestamp in filesystem 
