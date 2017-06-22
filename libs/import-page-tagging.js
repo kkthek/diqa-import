@@ -83,7 +83,7 @@
 				ajaxIndicator.setGlobalLoading(false);
 			});
 			
-			return dialog;
+			
 		};
 		
 		that.onOK = function() {
@@ -92,6 +92,7 @@
 				return;
 			}
 			var path = that.selectedNode.getKeyPath();
+			path = mw.RegExp.escape(path);
 		    $('input[name=diqa_taggingrule_parameters]').val(path);
 		    that.dialog.modal('hide');
 		};

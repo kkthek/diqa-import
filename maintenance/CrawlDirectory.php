@@ -30,7 +30,6 @@ class CrawlDirectory extends Maintenance {
 		
 		try {
 			if ($this->hasOption('directory')) {
-				
 				$this->cleanUp();
 				$directory = $this->getOption('directory');
 				if (!is_dir($directory) || !is_readable($directory)) {
@@ -38,20 +37,16 @@ class CrawlDirectory extends Maintenance {
 				}
 				$dryRun = $this->hasOption('dry-run');
 				$this->importDirectory($directory, $dryRun);
+
 			} else {
-				
 				$cache = ObjectCache::getInstance(CACHE_DB);
 				$cache->set('DIQA.Import.timestamp', time());
 				$dryRun = $this->hasOption('dry-run');
 				$this->processRegisteredImportJobs ($dryRun);
-	
 			}
 		} catch(Exception $e) {
-			echo "\n ERROR: " . $e->getMessage() . "\n";
 			$this->logger->error($e->getMessage());
 		}
-		
-		$this->logger->log("DONE.");
 	}
 	
 	/**
@@ -79,8 +74,6 @@ class CrawlDirectory extends Maintenance {
 	 * @param bool $dryRun
 	 */
 	private function processRegisteredImportJobs($dryRun) {
-		
-		
 		// read registered crawler jobs
 		// and select those which should run
 		$toRun = [];
@@ -99,7 +92,7 @@ class CrawlDirectory extends Maintenance {
 			if ($e->notYetRun() || $e->isForceRun()) {
 				$toRun[] = $e;
 			} else {
-				$this->logger->log("\nNext scheduled run of {$e->getRootPath()}: " . $e->getNextRun());
+				echo "CrawlDirectory: Next scheduled run of {$e->getRootPath()}: " . $e->getNextRun();
 				
 				if ($e->shouldRun()) {
 					$toRun[] = $e;
