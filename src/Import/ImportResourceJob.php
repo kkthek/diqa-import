@@ -175,9 +175,10 @@ abstract class ImportResourceJob extends Job {
 			->get();
 				
 			$output = '';
+			$info = null;
 			foreach($rules as $rule) {
 				$lastRule = $rule;
-				TaggingRuleParserFunction::applyRule($rule, $metadata, $output);
+				TaggingRuleParserFunction::applyRule($rule, $metadata, $output, $info);
 	
 				if ($output != '') {
 					break;

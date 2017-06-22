@@ -109,18 +109,4 @@ Artikel: <input type="text" size="120" name="diqa_taggingrule_testarticle" value
 </div>
 
 <!-- Resultat anzeigen -->
-@if($anyRuleApplied)
-	<div>
-	<h1>{{wfMessage('diqa-import-test-result')->text()}}</h1>
-	<div style="margin-top: 20px">
-	<div>{{wfMessage('diqa-import-rule-applied')->text()}}: 
-	{{$currentRuleApplied ? wfMessage('diqa-import-yes')->text() : wfMessage('diqa-import-no')->text() }}</div>
-	@if($anyRuleApplied && !$currentRuleApplied)
-	<div>{{wfMessage('diqa-import-instead-rule-applied')->text()}}: {{$lastRule->toString()}}</div>
-	@endif
-	<div>{{wfMessage('diqa-import-rule-output')->text()}}: '{{$output}}'</div>
-	</div>
-	</div>
-@else
-	{{wfMessage('diqa-import-no-rule-applied')->text()}}
-@endif
+@include('specials.tagging.import-special-test-taggingrule-results')

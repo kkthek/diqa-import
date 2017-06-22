@@ -32,9 +32,10 @@ class TaggingRuleParserFunction {
 		$params = $templateEditor->getTemplateParams('DIQACrawlerDocument');
 		
 		$output = '';
+		$info = null;
 		foreach($rules as $rule) {
 			
-			self::applyRule ( $rule, $params, $output );
+			self::applyRule ( $rule, $params, $output, $info );
 			
 			// stop if the rule was effective
 			if ($output != '') {
@@ -48,11 +49,12 @@ class TaggingRuleParserFunction {
 	/**
 	 * Applies a rule.
 	 * 
-	 * @param $rule
-	 * @param params
-	 * @param output (out)
+	 * @param $rule The rule
+	 * @param params template key/value pairs
+	 * @param output (out) Output of rule
+	 * @param info (out) Information about rule applied
 	 */
-	 public static function applyRule($rule, $params, & $output) {
+	 public static function applyRule($rule, $params, & $output, & $info) {
 		if (is_null($params)) {
 			return;
 		}
@@ -69,7 +71,7 @@ class TaggingRuleParserFunction {
 				
 				case "metadata":
 					$output = $params[$crawledPropertyToTest];
-					self::applySynonyms($rule, $output);
+					self::applySynonyms($rule, $output, $info);
 					break;
 					
 				case "regex":
@@ -86,12 +88,12 @@ class TaggingRuleParserFunction {
 							return isset($rep[1]) ? reset($matches[$rep[1]]) : '';
 						}, $output);
 							
-						self::applySynonyms($rule, $output);
+						self::applySynonyms($rule, $output, $info);
 						
 					} else if ($num > 0) {
 						$output = isset($matches[1]) ? trim(reset($matches[1])) : reset($matches[0]);
 						
-						self::applySynonyms($rule, $output);
+						self::applySynonyms($rule, $output, $info);
 					} else {
 						$output = '';
 					}
@@ -109,17 +111,26 @@ class TaggingRuleParserFunction {
 		
 	}
 
-	static function applySynonyms($rule, & $output) {
+	static function applySynonyms($rule, & $output, &$info) {
 		global $dimgAttributesToResolvePageID;
 		
+		$info['synonymApplied'] = false;
 		if (!in_array($rule->getRuleClass(), $dimgAttributesToResolvePageID)) {
 			return;
 		}
 		// check for synonyms and return page-ID
+		// and some information about the synonym
 		self::readSynonyms();
 		if (array_key_exists($output, self::$synonyms)) {
-			$output = self::$synonyms[$output];
+			$original = $output;
+			$output = self::$synonyms[$original];
+			$info['synonymApplied'] = true;
+			$info['original'] = $original;
+			$info['outputTitle'] = \Title::newFromText($output);
+			$info['outputTitleText'] = self::$synonyms['__'.$output];
 		}
+		
+		
 	}
 	
 	static function parserAfterStrip(Parser &$parser, & $text, $state) {
@@ -138,15 +149,15 @@ class TaggingRuleParserFunction {
 			return self::$synonyms;
 		}	
 		
-		$property = 'Synonyme'; //TODO: localize
-		$printout = new \SMWPrintRequest ( \SMWPrintRequest::PRINT_PROP, "$property", 
-				\SMWPropertyValue::makeUserProperty ( $property ) );
+		$synonymProperty = wfMessage('diqa-import-tagging-synonyms')->text();
+		$printout = new \SMWPrintRequest ( \SMWPrintRequest::PRINT_PROP, "$synonymProperty", 
+				\SMWPropertyValue::makeUserProperty ( $synonymProperty ) );
 		
 		global $fsgTitleProperty;
 		$printout_title = new \SMWPrintRequest ( \SMWPrintRequest::PRINT_PROP, "$fsgTitleProperty", 
 				\SMWPropertyValue::makeUserProperty ( $fsgTitleProperty ) );
 		
-		$query_result = QueryUtils::executeBasicQuery ( "[[$property::+]]", [
+		$query_result = QueryUtils::executeBasicQuery ( "[[$synonymProperty::+]]", [
 				$printout_title, $printout ], [ 'limit' => 10000	] );
 		
 		$results = [];
@@ -157,6 +168,7 @@ class TaggingRuleParserFunction {
 			$title = $res [1]->getNextText ( SMW_OUTPUT_WIKI );
 			
 			$results[$title] = $mwTitle->getPrefixedText();
+			$results['__'.$mwTitle->getPrefixedText()] =  $title;
 			
 			while ($pageTitle = $res [2]->getNextText ( SMW_OUTPUT_WIKI )) {
 				$results [$pageTitle] = $mwTitle->getPrefixedText();

@@ -340,10 +340,11 @@ class TaggingSpecialPage extends SpecialPage {
 		
 		// apply rules
 		$output = '';
+		$info = null;
 		foreach($replacedRules as $rule) {
 				
 			$lastRule = $rule;
-			TaggingRuleParserFunction::applyRule ( $rule, $params, $output );
+			TaggingRuleParserFunction::applyRule ( $rule, $params, $output, $info );
 				
 			// stop if the rule was effective
 			if ($output != '') {
@@ -363,7 +364,8 @@ class TaggingSpecialPage extends SpecialPage {
 					'output' => $output, 
 					'currentRuleApplied' => $currentRuleApplied,
 					'anyRuleApplied' => $anyRuleApplied,
-					'lastRule' => $lastRule ] )
+					'lastRule' => $lastRule,
+					'ruleInfo' => $info ] )
 		->render ();
 	}
 	
