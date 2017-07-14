@@ -9,7 +9,10 @@
         <h4 class="modal-title">{{wfMessage('diqa-import-crawling-folder-dialog-header')->text()}}</h4>
       </div>
       <div class="modal-body">
-       <p>{{wfMessage('diqa-import-crawling-folder-dialog-description')->text()}}</p>
+       <p>{{wfMessage('diqa-import-crawling-folder-dialog-description')->text()}}
+       @include('specials.general.import-special-js-button', ['command' => 'diqa-import-unfold' ])
+       @include('specials.general.import-special-js-button', ['command' => 'diqa-import-fold' ])
+       </p>
        <div id="tree"></div>
             
       </div>

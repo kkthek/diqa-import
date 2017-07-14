@@ -2,7 +2,6 @@
 
 use DIQA\Util\LoggerUtils;
 use DIQA\Import\Specials\TaggingSpecialPage;
-use DIQA\Util\Data\TreeNode;
 
 /**
  * Imports tagging rules from an XML file.
@@ -24,27 +23,28 @@ class ImportTaggingRules extends Maintenance {
 
 	public function execute() {
 		
-		$root = $this->convertIntoTreeObject(['/opt/DIQA/test', '/opt/DIQA/test1', '/opt/DIQA/test/test2', '/opt/DIQA/test2/test3']);
-		print_r($root->getTreeAsJSON());
-	}
-	
-	private function convertIntoTreeObject($directories) {
-		$root = new TreeNode();
-		foreach($directories as $f) {
-			$currentNode = $root;
-			$parts = explode('/', $f);
-			foreach($parts as $p) {
-				if (trim($p) == '') continue;
-				if ($currentNode->containsChildWithTitle($p)) {
-					$currentNode = $currentNode->getChildByTitle($p);
-				} else {
-					$newNode = new TreeNode($p, $p);
-					$currentNode->addChild($newNode);
-					$currentNode = $newNode;
-				}
+		$this->logger = new LoggerUtils('ImportTaggingRules', 'Import');
+		
+		try {
+			
+			$file = $this->getOption('file');
+			
+			if (!file_exists($file)) {
+				throw new Exception("File does not exist.");
 			}
+			if (!is_readable($file)) {
+				throw new Exception("File is not readable.");
+			}
+			
+			$this->logger->log("Import Tagging rules...");
+			TaggingSpecialPage::doImportTaggingRules($file);
+			$this->logger->log("Note: After import of tagging rules you have to refresh the semantic data.");
+			
+		} catch(Exception $e) {
+			$this->logger->error($e->getMessage());
 		}
-		return $root;
+		
+		$this->logger->log("DONE.");
 	}
 	
 	

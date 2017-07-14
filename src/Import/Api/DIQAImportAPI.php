@@ -6,6 +6,7 @@ use DIQA\Import\Specials\ImportSpecialPage;
 use Philo\Blade\Blade;
 use DIQA\Import\Models\CrawlerConfig;
 use DIQA\Util\Data\TreeNode;
+use DIQA\Import\Specials\TaggingSpecialPage;
 /**
  * DIQA import API ajax interface.
  * 
@@ -48,13 +49,21 @@ class DIQAImportAPI extends \ApiBase {
 				
 				$cache = \ObjectCache::getInstance(CACHE_DB);
 				$tree = $cache->get('DIQA.Import.directories');
+				$empty = new \stdClass();
+				$empty->children = [];
 				
 				$result['html'] = $this->blade->view ()->make ( "specials.dialogs.import-special-folder-dialog",
 				[ 
-					'tree' => $tree->getTreeAsJSON(),
+					'tree' => $tree !== false ? $tree->getTreeAsJSON() : json_encode($empty),
 				])
 				->render ();
 				
+				break;
+				
+			case "reorder-rules":
+				$ruleIDs = $params ['ruleIDs'];
+				$ruleIDs = explode(",", $ruleIDs);
+				TaggingSpecialPage::doReorderTaggingRules($ruleIDs);
 				break;
 				
 			default:
@@ -71,6 +80,7 @@ class DIQAImportAPI extends \ApiBase {
 		return array (
 				
 				'command' => null,
+				'ruleIDs' => null,
 				
 		);
 	}
@@ -78,6 +88,7 @@ class DIQAImportAPI extends \ApiBase {
 		return array (
 				
 				'command' => 'Command to execute',
+				'ruleIDs' => 'Comma-separated list of rule IDs',
 			
 		);
 	}

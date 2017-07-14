@@ -15,6 +15,8 @@ $messages['de'] = array(
 	'diqa-import-assistent-title' => 'Dokumente-Regel Assistent',
 		
 	# Special
+	'diqa-import-article' => 'Artikel',
+	'diqa-import-tagging-rules' => 'Tagging-Regeln',
 	'diqa-import-path-fs' => 'Import-Pfad im Dateisystem',
 	'diqa-url-prefix' => 'URL-Prefix (z.B. UNC-Pfad-Prefix)',
 	'diqa-time-to-start' => 'Zeitpunkt',
@@ -39,9 +41,15 @@ $messages['de'] = array(
 	'diqa-import-edit-entry' => 'Bearbeiten',
 	'diqa-import-copy-entry' => 'Kopieren',
 	'diqa-import-remove-rule' => 'Entfernen',
+	'diqa-import-add-link' => 'Regel hinzufügen',
 	'diqa-import-edit-rule' => 'Bearbeiten',
 	'diqa-import-copy-rule' => 'Kopieren',
 	'diqa-import-test-rule' => 'Testen',
+	'diqa-import-new-parameter' => 'Neuer Parameter',
+	'diqa-import-save-rule-order' => 'Reihenfolge speichern',
+	'diqa-import-sortup-rule' => 'Nach oben',
+	'diqa-import-sortdown-rule' => 'Nach unten',
+	'diqa-import-remove-parameter' => 'Entfernen',
 	'diqa-deactivate-job' => 'Job deaktivieren',
 	'diqa-activate-job' => 'Job aktivieren',
 	'diqa-open-log' => 'Log öffnen',
@@ -57,6 +65,7 @@ $messages['de'] = array(
 	'diqa-import-tagging-constraint' => 'Regulärer Ausdruck',
 	'diqa-import-tagging-type-metadata' => 'Kopiere Attribut',
 	'diqa-import-tagging-type-regex' => 'Regulärer Ausdruck',
+	'diqa-import-tagging-type-regex-path' => 'Pfad',
 	'diqa-import-tagging-return-value' => 'Rückgabewert',
 	'diqa-import-tagging-synonym-used' => 'Synonym benutzt',
 	'diqa-import-tagging-synonym' => 'Synonym',
@@ -80,12 +89,16 @@ $messages['de'] = array(
 	'diqa-import-open-folder-picker' => 'Öffne Crawling-Folders',
 	'diqa-import-crawling-folder-dialog-header' => 'Crawled Folders',
 	'diqa-import-crawling-folder-dialog-description' => 'Wählen Sie ein Verzeichnis. (wenn nichts angezeigt wird, müssen Sie crawlen)',
+	'diqa-import-fold' => 'Einklappen',
+	'diqa-import-unfold' => 'Aufklappen',
 		
 	# JS
 	'diqa-import-open-document' => 'Dokument öffnen',
 	'diqa-import-open-document-page' => 'Dokumentseite öffnen',
 	'diqa-import-open-document-dir' => 'Dokument-Verz. öffnen',
-	'diqa-import-no-file-selected' => 'Keine Regel-Datei ausgewählt'
+	'diqa-import-no-file-selected' => 'Keine Regel-Datei ausgewählt',
+	'diqa-import-regex-path-label'=> 'Pfad',
+	'diqa-import-regex-label'=> 'Regulärer-Ausdruck',
 );
 
 $magicWords['de'] = array(

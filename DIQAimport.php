@@ -5,6 +5,7 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Container\Container;
 use DIQA\Import\Models\CrawlerConfig;
 use Illuminate\Database\QueryException;
+use DIQA\Import\Specials\TaggingSpecialPage;
 
 /**
  * The main file of the DIQA Import extension
@@ -71,8 +72,10 @@ $wgResourceModules['ext.diqaimport.core'] = array(
 		'remoteExtPath' => 'Import',
 		'scripts' => array(
 				'libs/fancytree/jquery.fancytree-all.js',
+				'libs/jquery-combobox.js',
 				'libs/import-page-crawler.js',
-				'libs/import-page-tagging.js'
+				'libs/import-page-tagging-folderpicker.js',
+				'libs/import-page-tagging.js',
 				
 		),
 		'styles' => [ 
@@ -82,7 +85,9 @@ $wgResourceModules['ext.diqaimport.core'] = array(
 		
 		'dependencies' => [ 'jquery.ui.autocomplete', 'jquery.ui.datepicker', 'jquery.tablesorter', 'jquery.ui.core', 'jquery.effects.core', 'jquery.ui.slider' ],
 		'messages' => array(
-			'diqa-import-no-file-selected'
+			'diqa-import-no-file-selected',
+			'diqa-import-regex-label',
+			'diqa-import-regex-path-label'
 				
 		),
 );
@@ -144,6 +149,7 @@ function wfDIQAimportRegisterParserHooks(Parser $parser)
 	if (!is_null($wgTitle) && ($wgTitle->getNamespace() == NS_SPECIAL && 
 			(strtolower($wgTitle->getText()) == 'diqaimport') || strtolower($wgTitle->getText()) == 'diqatagging')) {
 		$wgOut->addModules('ext.diqaimport.core');
+		TaggingSpecialPage::addJSData();
 	}
 	
 	if (!is_null($wgTitle) && ($wgTitle->getNamespace() == NS_SPECIAL && $wgTitle->getText() == 'DIQAImportAssistent')) {

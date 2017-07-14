@@ -1,6 +1,6 @@
 @if($anyRuleApplied)
 <div>
-	<h1>{{wfMessage('diqa-import-test-result')->text()}}</h1>
+	
 	<div style="margin-top: 20px">
 		<div>{{wfMessage('diqa-import-rule-applied')->text()}}:
 			{{$currentRuleApplied ? wfMessage('diqa-import-yes')->text() :
@@ -13,7 +13,7 @@
 			<div>Id: {{$lastRule->id}}</div>
 			<div>Attribut: {{$lastRule->getRuleClass()}}</div>
 			<div>Crawled property: {{$lastRule->getCrawledProperty()}}</div>
-			<div>Parameter: {{$lastRule->getParameters()}}</div>
+			<div>Parameter: {{implode('<br>', $lastRule->getParametersAsPlainArray())}}</div>
 			<div>Type: {{$lastRule->getType()}}</div>
 			
 			@include('specials.general.import-special-command-newtab', ['command' => 'diqa-import-edit-rule', 'id' => $lastRule->id, 'page' => 'Special:DIQAtagging' ])</div>

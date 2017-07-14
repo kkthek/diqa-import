@@ -40,10 +40,17 @@ class SetupDIQAImport extends Maintenance {
 			'id' 	=> 'INT(8) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT',
 			'rule_class' => 'VARCHAR(255) NOT NULL',
 			'type' => 'VARCHAR(255) NOT NULL',
-			'parameters' => 'VARCHAR(255) NOT NULL',
 			'return_value' => 'VARCHAR(255)',
 			'priority' => 'INT(8) NOT NULL',
 			'crawled_property' => 'VARCHAR(255) NOT NULL'),
+		$db, true);
+		
+		$table = $db->tableName('diqa_imports_taggingrule_parameters');
+		DBHelper::setupTable($table, array(
+		'id' 	=> 'INT(8) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT',
+		'fk_taggingrule' => 'INT(8) UNSIGNED NOT NULL',
+		'parameter' => 'TEXT NOT NULL',
+		'pos' => 'INT(2)'),
 		$db, true);
 		
 		echo "\nSetting up wiki pages ... ";

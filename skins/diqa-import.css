@@ -1,5 +1,25 @@
-div.diqa-import-add-link {
-	margin-top: 10px;
+a.diqa-import-add-link {
+	position: relative;
+	top: 4px;
+	left: 10px;
+}
+
+select[name=diqa_taggingrule_attribute] {
+	background-color: #ddd;
+}
+
+div.diqa-taggingrule-header a {
+	float: right;
+	position: relative;
+	left: -1px;
+	top: 8px;
+}
+
+div.diqa-import-section span.ui-button-text {
+	line-height: 1.0 !important;
+}
+div.diqa-import-tagging-parameter-container {
+	margin-top: 5px;
 }
 
 div.diqa-import-add-link a {
@@ -20,11 +40,14 @@ div.diqa-import-table {
 
 div.diqa-import-table th {
 	background-color: lightgrey;
-	padding: 2px;
 }
 
 div.diqa-import-form {
 	margin-top: 20px;
+}
+
+td,th {
+	padding: 5px;
 }
 
 div.diqa-import-form td {
@@ -33,6 +56,15 @@ div.diqa-import-form td {
 
 div.diqa-import-form td:first-child {
 	width: 200px;
+}
+
+div.diqa-import-table td.diqa-import-action-column {
+	vertical-align: top;
+	margin-top: 10px;
+}
+
+div.diqa-import-table td.diqa-import-action-column > div {
+	margin-top: 10px;
 }
 
 div.diqa-import-section input[type=submit] {
@@ -67,12 +99,18 @@ form.diqa-import-command {
 	pointer: cursor;
 }
 
+td.diqa-import-action-column a.diqa-import-js-button {
+	float: left;
+	margin-left: 3px;
+	pointer: cursor;
+}
+
 form.diqa-import-command a {
 	cursor: pointer;
 }
 
-form.diqa-import-command-nofloat a {
-	cursor: pointer;
+form.diqa-import-command {
+	float: left;
 }
 
 div.diqa-import-table table tr:nth-child(odd) {
@@ -116,4 +154,13 @@ input.ui-autocomplete-loading {
 
 a.diqa-import-js-button {
 	cursor: pointer;
+}
+
+div.diqa-import-tagging-footer {
+	margin-top: 20px;
+	height: 90px;
+}
+
+div.diqa-import-tagging-footer form {
+	margin-left: 20px;
 }

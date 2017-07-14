@@ -75,27 +75,34 @@ class TaggingRuleParserFunction {
 					break;
 					
 				case "regex":
+				case "regex-path":
 					$value = $params[$crawledPropertyToTest];
-					$pattern = $rule->getParameters();
-					$pattern = str_replace('/', '\/', $pattern);
-					$matches = [];
-					$num = preg_match_all("/$pattern/", $value, $matches);
 					
-					if ($num > 0 && $rule->getReturnValue() != '') {
+					foreach($rule->getParameters()->get() as $param) {
+						$pattern = str_replace('/', '\/', $param->getParameter());
+						$matches = [];
+						$num = preg_match_all("/$pattern/", $value, $matches);
 						
-						$output = $rule->getReturnValue();
-						$output = preg_replace_callback('/\$(\d+)/', function($rep) use ($matches) { 
-							return isset($rep[1]) ? reset($matches[$rep[1]]) : '';
-						}, $output);
+						if ($num > 0 && $rule->getReturnValue() != '') {
 							
-						self::applySynonyms($rule, $output, $info);
+							$output = $rule->getReturnValue();
+							$output = preg_replace_callback('/\$(\d+)/', function($rep) use ($matches) { 
+								return isset($rep[1]) ? reset($matches[$rep[1]]) : '';
+							}, $output);
+								
+							self::applySynonyms($rule, $output, $info);
+							
+						} else if ($num > 0) {
+							$output = isset($matches[1]) ? trim(reset($matches[1])) : reset($matches[0]);
+							
+							self::applySynonyms($rule, $output, $info);
+						} else {
+							$output = '';
+						}
 						
-					} else if ($num > 0) {
-						$output = isset($matches[1]) ? trim(reset($matches[1])) : reset($matches[0]);
-						
-						self::applySynonyms($rule, $output, $info);
-					} else {
-						$output = '';
+						if ($output != '') {
+							break;
+						}
 					}
 					
 					break;
