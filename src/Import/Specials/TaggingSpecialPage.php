@@ -64,47 +64,17 @@ class TaggingSpecialPage extends SpecialPage {
 	 * 
 	 */
 	public static function addJSData() {
-		global $dimgAttributeReturnValueMapping, $dimgTitleAttribute;
-		$results = [];
+		
+		$results = TaggingRuleParserFunction::readReturnValueMapping();
+		
+		// add -all- value
+		global $dimgAttributeReturnValueMapping;
 		foreach($dimgAttributeReturnValueMapping as $attribute => $queryData) {
-			$query = $queryData['query'];
-			$titleProperty = $dimgTitleAttribute;
-			$synonymProperty = wfMessage('diqa-import-tagging-synonyms')->text();
-			$printoutSynonym = new \SMWPrintRequest ( \SMWPrintRequest::PRINT_PROP, "$synonymProperty",
-					\SMWPropertyValue::makeUserProperty ( $synonymProperty ) );
-			
-			$printoutTitle = new \SMWPrintRequest ( \SMWPrintRequest::PRINT_PROP, "$titleProperty", \SMWPropertyValue::makeUserProperty ( $titleProperty ) );
-			$query_result = QueryUtils::executeBasicQuery ( $query, [
-			$printoutTitle, $printoutSynonym
-			], [
-			'limit' => 500
-			] );
-			
-			
-			$results[$attribute] = [];
-			while ( $res = $query_result->getNext () ) {
-				$pageID = $res [0]->getNextText ( SMW_OUTPUT_WIKI );
-				$pageTitle = $res [1]->getNextText ( SMW_OUTPUT_WIKI );
-				
-				if (!is_string($pageTitle)) {
-					continue;
-				}
-				
-				$synonyms = [];
-				while ($synonym = $res [2]->getNextText ( SMW_OUTPUT_WIKI )) {
-					$synonyms[] = $synonym;
-				}
-					
-				$mwTitle = \Title::newFromText ( $pageID );
-				$pageTitle = \Title::newFromText($pageTitle);
-				$pageTitle = isset($queryData['no-namespace']) ? $pageTitle->getText(): $pageTitle->getPrefixedText();
-				$results [$attribute][$mwTitle->getPrefixedText()] = [
-					'title' => $pageTitle,
-					'mwTitle' => $mwTitle->getPrefixedText(),
-					'synonyms' => $synonyms
-				];
-			}
-			
+			$results [$attribute]['-all-'] = [
+			'title' => '-' . wfMessage('diqa-import-all-values')->text() . '-',
+			'mwTitle' => '-all-',
+			'synonyms' => []
+			];
 		}
 		
 		global $wgOut;
@@ -151,7 +121,7 @@ class TaggingSpecialPage extends SpecialPage {
 			$type = $_POST ['diqa_taggingrule_type'];
 			$parameters = $_POST ['diqa_taggingrule_parameters'];
 			$priority = $_POST ['diqa_taggingrule_priority'];
-			$returnValue = $_POST ['diqa_taggingrule_returnvalue'];
+			$returnValue = @$_POST ['diqa_taggingrule_returnvalue'];
 			$this->doAddOrUpdateTaggingRule ($attribute, $crawledProperty, $type, $parameters, $returnValue, $priority);
 		}
 
@@ -159,6 +129,13 @@ class TaggingSpecialPage extends SpecialPage {
 			$id = $_POST['diqa-import-remove-rule'];
 			$this->doRemoveTaggingRule ($id);
 		}
+		
+		if (isset ($_POST['diqa-import-add-new-rule'])) {
+			$attribute = $_POST['diqa-import-param'];
+			$this->doAddNewTaggingRule ($attribute, $html );
+			return;
+		}
+		
 		
 		if (isset ($_POST['diqa-import-edit-rule'])) {
 			$id = $_POST['diqa-import-edit-rule'];
@@ -264,6 +241,14 @@ class TaggingSpecialPage extends SpecialPage {
 		// create or update it
 		$id = $_POST['diqa_import_taggingrule_id'];
 		if ($id == '') {
+			
+			// create new rule
+			// re-order existing rules before adding new
+			$allRulesForClass = TaggingRule::where('rule_class', $attribute)->orderBy('priority')->get()->all();
+			$ruleIDs = array_map(function($e) { return $e->id; }, $allRulesForClass);
+			self::doReorderTaggingRules($ruleIDs);
+			
+			// add new
 			$entry = new TaggingRule();
 			$entry->rule_class = $attribute;
 			$entry->crawled_property = $crawledProperty;
@@ -272,6 +257,10 @@ class TaggingSpecialPage extends SpecialPage {
 			$entry->priority = $priority;
 				
 			$entry->save ();
+			
+			if ($type == 'metadata') {
+				$parameters = [];
+			}
 			
 			$pos = 0;
 			foreach($parameters as $param) {
@@ -286,6 +275,8 @@ class TaggingSpecialPage extends SpecialPage {
 			}
 			
 		} else {
+			
+			// update rule 
 			$entry = TaggingRule::where('id', $id)->get()->first();
 			$entry->rule_class = $attribute;
 			$entry->crawled_property = $crawledProperty;
@@ -296,6 +287,10 @@ class TaggingSpecialPage extends SpecialPage {
 			$entry->save();
 			
 			$entry->getParameters()->delete();
+			
+			if ($type == 'metadata') {
+				$parameters = [];
+			}
 			
 			$pos = 0;
 			foreach($parameters as $param) {
@@ -320,10 +315,28 @@ class TaggingSpecialPage extends SpecialPage {
 	 */
 	private function doRemoveTaggingRule($id) {
 	
-		$entry = TaggingRule::where('id', $id);
-		$entry->get()->first()->getParameters()->delete(); // FIXME: could be obsolete when using foreign keys
+		$entry = TaggingRule::where('id', $id)->get()->first();
 		$entry->delete();
 		
+		self::addHintToRefreshSemanticData();
+	}
+	
+	/**
+	 * Add new tagging rule
+	 *
+	 * @param attribute
+	 * @param string (out) html
+	 */
+	private function doAddNewTaggingRule($attribute, & $html) {
+	
+		$taggingProperties = $this->getTaggingProperties ();
+		
+		$html .= $this->blade->view ()->make ( "specials.tagging.import-special-taggingrule-form",
+				[	
+				'attribute' => $attribute,
+				'taggingProperties' => $taggingProperties,
+				'edit' => false ] )->render ();
+	
 		self::addHintToRefreshSemanticData();
 	}
 
@@ -338,6 +351,7 @@ class TaggingSpecialPage extends SpecialPage {
 		$taggingProperties = $this->getTaggingProperties ();
 
 		$entry = TaggingRule::where('id', $id)->get()->first();
+		
 		$html .= $this->blade->view ()->make ( "specials.tagging.import-special-taggingrule-form",
 				[	'taggingRule' => $entry,
 					'taggingProperties' => $taggingProperties,

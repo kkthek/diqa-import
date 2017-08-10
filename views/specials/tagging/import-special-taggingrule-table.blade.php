@@ -13,5 +13,10 @@
 	@include('specials.tagging.import-special-taggingrule-row', [ 'taggingRule' => $taggingRule ])
 @endforeach
 
+<tr>
+<td colspan="5">
+@include('specials.general.import-special-command', ['command' => 'diqa-import-add-new-rule', 
+'img' => 'add.png', 'page' => 'Special:DIQAtagging', 'param' => $attribute, 'text' => 'Regel hinzufügen' ])
+</td>
 </table>
 </div>

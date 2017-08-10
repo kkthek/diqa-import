@@ -101,6 +101,10 @@ class TaggingRule extends Model {
 			return $this->return_value;
 		}
 		
+		if ($this->return_value == '-all-') {
+			return '-' . wfMessage('diqa-import-all-values')->text() . '-';
+		}
+		
 		$store = StoreFactory::getStore ();
 		$title = \SMWDIWikiPage::newFromText($this->return_value);
 		
@@ -148,3 +152,8 @@ class TaggingRule extends Model {
 	}
 	
 }
+
+// Make sure deleting a tagging rule cascades to its parameters
+TaggingRule::deleting(function($rule) { 
+		$rule->getParameters()->delete();
+});

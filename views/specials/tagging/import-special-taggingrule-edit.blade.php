@@ -11,7 +11,15 @@ use DIQA\Import\Models\TaggingRule;
 	<td>
 	<select disabled="disabled" name="diqa_taggingrule_attribute">
 		@foreach($taggingProperties as $p)
-			<option value="{{$p}}" {{isset($taggingRule) && $taggingRule->getRuleClass() == $p ? 'selected=true' : ''}}>
+			<?php 
+				
+				if(isset($taggingRule)) {
+					$isSelected = $taggingRule->getRuleClass() == $p;
+				} else if (isset($attribute)) {
+					$isSelected = $attribute == $p;
+				} 
+			?>
+			<option value="{{$p}}" {{$isSelected ? 'selected=true' : ''}}>
 				{{$p}}
 			</option>
 		@endforeach
@@ -36,24 +44,24 @@ use DIQA\Import\Models\TaggingRule;
 	
 	
 	
-	<tr id="diqa-import-tagging-returnvalue" style="{{$taggingRule->type == 'regex' ? '' : 'display:none'}};">
+	<tr id="diqa-import-tagging-returnvalue" style="{{isset($taggingRule) && $taggingRule->type == 'regex' ? '' : 'display:none'}};">
 	<td>
 	<span>{{wfMessage('diqa-import-tagging-return-value')->text()}}</span>
 	</td>
 	<td>
-	<select size="60" name="diqa_taggingrule_returnvalue">
+	<select  name="diqa_taggingrule_returnvalue">
 	<option selected="true" value="{{isset($taggingRule) ? $taggingRule->getReturnValue() : ''}}">{{isset($taggingRule) ? $taggingRule->getTitleForReturnValue() : ''}}</option>
 	</select>
-	 <br>({{wfMessage('diqa-import-returnvalue-hint')->text()}})
+	 <br><span id="diqa-import-return-value-hint">({{wfMessage('diqa-import-returnvalue-hint')->text()}})</span>
 	</td>
 	</tr>
 	
-	<tr id="diqa-import-tagging-crawledProperty" style="{{$taggingRule->type != 'regex-path' ? '' : 'display:none'}};">
+	<tr id="diqa-import-tagging-crawledProperty" style="{{isset($taggingRule) && $taggingRule->type != 'regex-path' ? '' : 'display:none'}};">
 	<td>
 	<span>{{wfMessage('diqa-import-tagging-crawledProperty')->text()}}</span>
 	</td>
 	<td>
-	<input type="text" size="60" name="diqa_taggingrule_crawledProperty" value="{{isset($taggingRule) ? $taggingRule->getCrawledProperty() : ''}}"/>
+	<input type="text"  name="diqa_taggingrule_crawledProperty" value="{{isset($taggingRule) ? $taggingRule->getCrawledProperty() : ''}}"/>
 	<br>({{wfMessage('diqa-import-crawled-property-hint')->text()}})
 	</td>
 	</tr>
@@ -66,14 +74,20 @@ use DIQA\Import\Models\TaggingRule;
 	@if(isset($taggingRule))
 		@foreach($taggingRule->getParameters()->get() as $param)
 			<div class="diqa-import-tagging-parameter-container">
-				<input type="text" size="60" class="diqa_taggingrule_parameters" name="diqa_taggingrule_parameters[]" value="{{$param->getParameter()}}"/>
-				@include('specials.general.import-special-js-multibutton', ['command' => 'diqa-import-remove-parameter', 'img' => 'remove.png', 'style' => 'float: right;position: relative;  top: 4px;  left: 5px;' ])
+				<input type="text"  class="diqa_taggingrule_parameters" name="diqa_taggingrule_parameters[]" value="{{$param->getParameter()}}"/>
+				@include('specials.general.import-special-js-multibutton', ['command' => 'diqa-import-remove-parameter', 'img' => 'remove.png', 'style' => '' ])
 			</div>
 		@endforeach
+		@if (count($taggingRule->getParameters()->get()) == 0)
+			<div class="diqa-import-tagging-parameter-container">
+				<input type="text"  class="diqa_taggingrule_parameters" name="diqa_taggingrule_parameters[]" value=""/>
+				@include('specials.general.import-special-js-multibutton', ['command' => 'diqa-import-remove-parameter', 'img' => 'remove.png', 'style' => '' ])
+			</div>
+		@endif
 	@else
 		<div class="diqa-import-tagging-parameter-container">
-			<input type="text" size="60" class="diqa_taggingrule_parameters" name="diqa_taggingrule_parameters[]" value=""/>
-			@include('specials.general.import-special-js-multibutton', ['command' => 'diqa-import-remove-parameter', 'img' => 'remove.png', 'style' => 'float: right;position: relative;  top: 4px;  left: 5px;' ])
+			<input type="text"  class="diqa_taggingrule_parameters" name="diqa_taggingrule_parameters[]" value=""/>
+			@include('specials.general.import-special-js-multibutton', ['command' => 'diqa-import-remove-parameter', 'img' => 'remove.png', 'style' => '' ])
 		</div>
 	@endif
 	<br>
@@ -100,14 +114,9 @@ use DIQA\Import\Models\TaggingRule;
 	</tr>
 	
 	<tr>
-	<td>
+	<td colspan="2">
 	<input type="submit" value="{{wfMessage('diqa-save-button')->text()}}" name="add-import-taggingrule" />
-	@if (isset($taggingRule))
 	<input type="submit" value="{{wfMessage('diqa-cancel-button')->text()}}" name="cancel-import-taggingrule" />
-	@endif
-	@if (!$edit)
-	<input type="button" value="{{wfMessage('diqa-cancel-button')->text()}}" name="close-import-taggingrule" />
-	@endif
 	</td>
 	</tr>
 	

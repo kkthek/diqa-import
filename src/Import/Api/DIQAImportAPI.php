@@ -55,6 +55,7 @@ class DIQAImportAPI extends \ApiBase {
 				$result['html'] = $this->blade->view ()->make ( "specials.dialogs.import-special-folder-dialog",
 				[ 
 					'tree' => $tree !== false ? $tree->getTreeAsJSON() : json_encode($empty),
+					'attribute' => $params ['attribute'],
 				])
 				->render ();
 				
@@ -80,6 +81,7 @@ class DIQAImportAPI extends \ApiBase {
 		return array (
 				
 				'command' => null,
+				'attribute' => null,
 				'ruleIDs' => null,
 				
 		);
@@ -88,6 +90,7 @@ class DIQAImportAPI extends \ApiBase {
 		return array (
 				
 				'command' => 'Command to execute',
+				'attribute' => 'Attribute name',
 				'ruleIDs' => 'Comma-separated list of rule IDs',
 			
 		);

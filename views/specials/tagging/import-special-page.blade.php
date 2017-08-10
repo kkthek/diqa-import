@@ -11,8 +11,6 @@
 <div class="diqa-import-section">
 <h1>{{wfMessage('diqa-import-tagging-rules')->text()}}</h1>
 
-@include('specials.tagging.import-special-taggingrule-form', ['edit' => false])
-
 @foreach($ruleClasses as $ruleClass => $taggingRules)
 	@include('specials.tagging.import-special-taggingrule-ruleclass', [ 'ruleClass' => $ruleClass, 'taggingRules' => $taggingRules ])
 @endforeach

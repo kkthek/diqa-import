@@ -37,6 +37,7 @@
 			case 'regex':
 				$('tr#diqa-import-tagging-constraint').show();
 				$('tr#diqa-import-tagging-returnvalue').show();
+				$('span#diqa-import-return-value-hint').show();
 				$('input[name=diqa_taggingrule_crawledProperty]').removeProp('readonly');
 				$('a#diqa-import-open-folder-picker').hide();
 				$('tr#diqa-import-tagging-crawledProperty').show();
@@ -48,6 +49,7 @@
 			
 			case 'regex-path':
 				$('tr#diqa-import-tagging-constraint').show();
+				$('span#diqa-import-return-value-hint').hide();
 				$('tr#diqa-import-tagging-returnvalue').show();
 				$('input[name=diqa_taggingrule_crawledProperty]').val('DIQAFileLocation');
 				$('input[name=diqa_taggingrule_crawledProperty]').prop('readonly', 'readonly');
@@ -254,6 +256,9 @@
 
 					$(event.target).closest('div.diqa-taggingrule-container')
 							.find('div.diqa-taggingrule-table').toggle();
+					
+					$('.diqa-import-unfold-link', event.target).toggle();
+					$('.diqa-import-fold-link', event.target).toggle();
 				});
 
 		/**
@@ -396,25 +401,6 @@
 			var input = $(event.target).closest('div.diqa-import-tagging-parameter-container');
 			input.remove();
 			
-		});
-		
-		/**
-		 * Add new rule button
-		 */
-		$('.diqa-import-add-link').click(function(event) { 
-			event.stopPropagation();
-			event.preventDefault();
-			$('#add-tagging-rule').show();
-			var attribute = $(event.target).closest('div.diqa-taggingrule-header').attr('attribute');
-			window.DIQA.IMPORT.returnValuePicker.selectValue(attribute);
-			$('select[name=diqa_taggingrule_attribute] option[value="'+attribute+'"]').prop('selected', true);
-		});
-		
-		/**
-		 * Hide the "new rule" form when hitting Cancel
-		 */
-		$('input[name=close-import-taggingrule]').click(function() { 
-			$('#add-tagging-rule').hide();
 		});
 		
 		/**

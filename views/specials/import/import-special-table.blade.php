@@ -1,3 +1,4 @@
+<div id="diqa-import-crawler-table">
 <div class="diqa-import-table">
 <table>
 <tr>
@@ -18,4 +19,5 @@
 	@include('specials.import.import-special-row', [ 'entry' => $entry ])
 @endforeach
 </table>
+</div>
 </div>

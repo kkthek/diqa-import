@@ -13,11 +13,12 @@
 		/**
 		 * Returns the dialog HTML
 		 */
-		that.getFolderPickerDialog = function(callback, callbackError) {
+		that.getFolderPickerDialog = function(attribute, callback, callbackError) {
 
 			var data = {
 				action : 'diqa_import',
 				command : 'get-folder-picker',
+				attribute : attribute,
 				format : 'json'
 			};
 
@@ -66,8 +67,8 @@
 			
 			var ajaxIndicator = new DIQAUTIL.Util.AjaxIndicator();
 			ajaxIndicator.setGlobalLoading(true);
-			
-			new Ajax().getFolderPickerDialog(function(jsondata) { 
+			var attribute = $('select[name=diqa_taggingrule_attribute]').val();
+			new Ajax().getFolderPickerDialog(attribute, function(jsondata) { 
 				
 				ajaxIndicator.setGlobalLoading(false);
 				var html = jsondata.diqaimport.html;
@@ -142,9 +143,9 @@
 				       }
 				       var $span = $(node.span);
 				       if (foundSynonym) {
-				          $span.find("> span.fancytree-title").text(">> " + node.title).css({
+				          $span.find("> span.fancytree-title").css({
 				            fontStyle: "italic"
-				          });
+				          }).addClass('diqa-import-proposal-folder');
 				       } else {
 				    	   $span.find("> span.fancytree-title").text(node.title);
 				       }
@@ -163,26 +164,86 @@
 				    });
 				    if (result.length > 0) {
 				    	node.setSelected();
+				    	that.selectedNodes.push(node);
+				    	var $span = $(node.span);
+				    	$span.addClass('diqa-import-selected-folder');
 				    }
 			 });
 			 
 			 $('button[action=ok]').click(that.onOK);
+			 $('button[action=select-proposals]').click(that.onSelectProposals);
+			 $('input[action=show-proposals]').click(that.onShowProposals);
 			 $('#diqa-import-fold').click(that.fold);
 			 $('#diqa-import-unfold').click(that.unfold);
 		};
 		
 		that.fold = function() {
 			var tree = $("#tree", that.dialog).fancytree("getTree");
-			 tree.visit(function(node){
-				    node.setExpanded(false);
-			 });
+			var activeNode = tree.activeNode ? tree.activeNode : tree.rootNode;
+			activeNode.setExpanded(false);
+			activeNode.visit(function(node){
+				node.setExpanded(false);
+			});
 		};
 		
 		that.unfold = function() {
 			var tree = $("#tree", that.dialog).fancytree("getTree");
-			 tree.visit(function(node){
-				    node.setExpanded(true);
+			var activeNode = tree.activeNode ? tree.activeNode : tree.rootNode;
+			activeNode.setExpanded(true);
+			activeNode.visit(function(node){
+				node.setExpanded(true);
+			});
+
+		};
+		
+		that.visitProposals = function(callback) {
+			var tree = $("#tree", that.dialog).fancytree("getTree");
+			tree.visit(function(node){
+			
+		        var foundSynonym = false;
+		        if (that.metadata) {
+			        $.each(that.metadata['synonyms'], function(i, e) { 
+			        	 if (node.title.toLowerCase().indexOf(e.toLowerCase()) > -1) {
+			        		 foundSynonym = true;
+			        	 }
+			        });
+			        if (node.title.toLowerCase().indexOf(that.metadata['title'].toLowerCase()) > -1) {
+		        		 foundSynonym = true;
+		        	 }
+		       }
+		  
+		       if (foundSynonym) {
+		    	   callback(node);
+		       } 
+		       
 			 });
+		};
+		
+		that.onSelectProposals = function() {
+			
+			that.selectedNodes = [];
+			that.visitProposals(function(node) {
+				node.setSelected();
+		    	that.selectedNodes.push(node);
+			});
+		};
+		
+		that.onShowProposals = function() {
+			var show = $('input[action=show-proposals]').prop('checked');
+			
+			that.visitProposals(function(node) {
+				var $span = $(node.span);
+				var span = $span.find("> span.fancytree-title");
+				if (show) {
+					span.css({
+			            fontStyle: "italic"
+			          }).addClass('diqa-import-proposal-folder');
+				} else {
+					span.css({
+			            fontStyle: "normal"
+			          }).removeClass('diqa-import-proposal-folder');
+				}
+			});
 		};
 		
 		return that;

@@ -65,6 +65,7 @@ $wgJobClasses['CrawlDirectoryJob'] = 'DIQA\Import\CrawlDirectoryJob';
 $wgJobClasses['RefreshDocumentsJob'] = 'DIQA\Import\RefreshDocumentsJob';
 
 $GLOBALS['wgAPIModules']['diqa_import'] = 'DIQA\Import\Api\DIQAImportAPI';
+$GLOBALS['wgAPIModules']['diqa_import_log'] = 'DIQA\Import\Api\DIQAImportLoggingAPI';
 $wgActions['directannotation'] = 'DIQA\Import\Search\FacetedSearchExtensions';
 
 $wgResourceModules['ext.diqaimport.core'] = array(
@@ -110,26 +111,6 @@ $wgResourceModules['ext.diqaimport.enhancedretrieval'] = array(
 		),
 );
 
-$wgResourceModules['ext.diqaimport.assistent'] = array(
-		'localBasePath' => $dir,
-		'remoteExtPath' => 'Import',
-		'scripts' => array(
-				'libs/fancytree/jquery.fancytree-all.js',
-				'libs/import-assistent-page.js'
-
-		),
-		'styles' => [ 
-		'libs/fancytree/skin-win8/ui.fancytree.min.css'
-		],
-
-		'dependencies' => ['jquery.ui.core', 'jquery.effects.core', 'jquery.ui.slider' ],
-		'messages' => array(
-				'diqa-import-open-document',
-				'diqa-import-open-document-dir',
-
-		),
-		//'group' => 'jquery.ui',
-);
 
 $wgHooks['ParserAfterStrip'][] = 'DIQA\Import\TaggingRuleParserFunction::parserAfterStrip';
 $wgHooks['ParserFirstCallInit'][] = 'wfDIQAimportRegisterParserHooks';
@@ -152,9 +133,7 @@ function wfDIQAimportRegisterParserHooks(Parser $parser)
 		TaggingSpecialPage::addJSData();
 	}
 	
-	if (!is_null($wgTitle) && ($wgTitle->getNamespace() == NS_SPECIAL && $wgTitle->getText() == 'DIQAImportAssistent')) {
-		$wgOut->addModules('ext.diqaimport.assistent');
-	}
+	
 }
 
 /**
@@ -263,6 +242,20 @@ function wfDIQAInitializeEloquent() {
 
 	// Setup the Eloquent ORM... (optional; unless you've used setEventDispatcher())
 	$capsule->bootEloquent ();
+}
+
+/**
+ * Shortens a string if it is longer than 55 chars.
+ * 
+ * @param string $str
+ * @return unknown|string
+ */
+function wfDIQAShorten($str) {
+	if (strlen($str) < 55) {
+		return $str;
+	} 
+	
+	return substr($str, 0, 5) . " ... " . substr($str, -50);
 }
 
 /**

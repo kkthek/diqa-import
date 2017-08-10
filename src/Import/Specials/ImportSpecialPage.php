@@ -191,7 +191,8 @@ class ImportSpecialPage extends SpecialPage {
 
 		if (isset($_GET['showLog'])) {
 			$jobID = isset($_GET['jobID']) ? $_GET['jobID'] : false;
-			$this->doShowLog($jobID);
+			$offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
+			$this->doShowLog($jobID, $offset);
 			die();
 		}
 
@@ -199,12 +200,14 @@ class ImportSpecialPage extends SpecialPage {
 	}
 
 	/**
-	 * Echos the last 1000 lines of the given Job-Log. If $jobID === false,
-	 * it returns the general Import log.
-	 *
-	 * @param int $jobID
+	 * Returns the path of the log with then given jobID 
+	 * or the default log if jobID is false.
+	 * 
+	 * @param int $jobID Job-ID or false
+	 * @throws \Exception
+	 * @return string
 	 */
-	private function doShowLog($jobID) {
+	public static function getLogPath($jobID) {
 		$logDir = LoggerUtils::getLogDir();
 		$date = (new \DateTime('now', new \DateTimeZone(date_default_timezone_get())))->format("Y-m-d");
 		if ($jobID !== false) {
@@ -213,15 +216,33 @@ class ImportSpecialPage extends SpecialPage {
 			$path = "$logDir/Import/Import_{$date}.log";
 		}
 		if (!file_exists($path)) {
-			// use general log as fallback
-			$path = "$logDir/Import/Import_{$date}.log";
-			if (!file_exists($path)) {
-				echo "Log not available";
-				return;
-			}
+			
+			throw new \Exception("Log does not exist");
+			
 		}
-		$lines = FileUtils::last_lines($path, 1000);
-		echo implode('<br>', $lines);
+		return $path;
+	}
+	
+	/**
+	 * Echos the last 1000 lines of the given Job-Log. If $jobID === false,
+	 * it returns the general Import log.
+	 *
+	 * @param int $jobID
+	 */
+	private function doShowLog($jobID, $offset) {
+		
+		$path = self::getLogPath($jobID);
+		$result = FileUtils::last_lines($path, 1000, $offset);
+		$lines = $result['lines'];
+		$lines = array_filter($lines, function($l) { return trim($l) != ''; });
+		
+		$html = $this->blade->view ()->make ( "logs.log-page",
+				[	'rows' => $lines,
+					'jobID' => $jobID,
+					'offset' => $result['offset']
+		] )->render ();
+		
+		echo $html;
 	}
 	 /**
 	  * Adds or updates an entry.
