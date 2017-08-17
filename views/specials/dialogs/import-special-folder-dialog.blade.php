@@ -12,7 +12,7 @@
        <p>{{wfMessage('diqa-import-crawling-folder-dialog-description')->text()}}
        @include('specials.general.import-special-js-button', ['command' => 'diqa-import-unfold' ])
        @include('specials.general.import-special-js-button', ['command' => 'diqa-import-fold' ])
-       <a href="{{wfDIQAURL('DIQAImport')}}" target="_blank">[{{wfMessage('diqa-import-open-crawl-site')->text()}}]</a>
+       <a href="{{wfDIQAURL('Special:DIQAImport')}}" target="_blank">[{{wfMessage('diqa-import-open-crawl-site')->text()}}]</a>
        </p>
        <div id="tree"></div>
        <div id="option-pane">
