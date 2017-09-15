@@ -2,18 +2,16 @@
 
 namespace DIQA\Import;
 
+use DIQA\Util\Data\TreeNode;
+use DIQA\Util\LoggerUtils;
 use Job;
-use WikiPage;
-use Title;
 use JobQueueGroup;
 use SMW\StoreFactory;
-use DIQA\Util\QueryUtils;
-use DIQA\Util\LoggerUtils;
-use DIQA\Util\Data\TreeNode;
+use Title;
 
 /**
  * Crawls a directory and imports documents.
- * 
+ *
  * @author Kai
  *
  */
@@ -31,7 +29,6 @@ class CrawlDirectoryJob extends Job {
 		}
 		
 		$this->logger = new LoggerUtils('CrawlDirectoryJob', 'Import', $jobID);
-		
 	}
 	
 	/**
@@ -41,17 +38,17 @@ class CrawlDirectoryJob extends Job {
 	 * @see Job::run()
 	 */
 	public function run() {
-		$this->importDocuments();
+	    $this->importDocuments();
 	}
 	
 	/**
 	 * Create import jobs.
-	 * 
-	 * 
+	 *
+	 *
 	 * @return int Number of jobs created for *new* documents
 	 */
 	public function importDocuments() {
-		$directory = $this->params['directory'];
+	    $directory = $this->params['directory'];
 		$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQAImport');
 		
 		$jobsForNewDocuments = 0;
@@ -122,11 +119,11 @@ class CrawlDirectoryJob extends Job {
 		$tree = $this->convertIntoTreeObject($oldTree, $directories);
 		$cache->set('DIQA.Import.directories', $tree);
 		return $jobsForNewDocuments;
-	}	
+	}
 	
 	/**
 	 * Stores encountered directories as TreeNode object.
-	 * 
+	 *
 	 * @param array $directories Paths into filesystem
 	 * @return \DIQA\Util\Data\TreeNode
 	 */
@@ -154,11 +151,11 @@ class CrawlDirectoryJob extends Job {
 	}
 	
 	/**
-	 * Checks if the modification timestamp in filesystem 
+	 * Checks if the modification timestamp in filesystem
 	 * matches the modification timestamp stored in the wiki.
-	 * 
+	 *
 	 * @param string $filepath
-	 * @return boolean true if both timestamps do not match or 
+	 * @return boolean true if both timestamps do not match or
 	 * 		if the given file is not yet imported.
 	 */
 	private function isModified($filepath) {
@@ -181,13 +178,13 @@ class CrawlDirectoryJob extends Job {
 	
 	/**
 	 * Returns the (first) property value of DIQAModificationTime.
-	 * 
+	 *
 	 * @param Title $title
 	 * @return number
 	 */
 	private function getTimestamp($title) {
 		$store = StoreFactory::getStore ();
-		$timestamp = $store->getPropertyValues( \SMWDIWikiPage::newFromTitle($title), 
+		$timestamp = $store->getPropertyValues( \SMWDIWikiPage::newFromTitle($title),
 				\SMWDIProperty::newFromUserLabel ( 'DIQAModificationTime' ) );
 		$timestamp = reset($timestamp);
 		return $timestamp !== false ? $timestamp->getMwTimestamp() : 0;
@@ -195,21 +192,21 @@ class CrawlDirectoryJob extends Job {
 	
 	/**
 	 * Returns the title of the imported document for a given file location.
-	 * 
+	 *
 	 * @param string $filepath
 	 * @return Title or NULL if it does not exist.
 	 */
 	private function getTitleForFileLocation($filepath) {
 		$store = StoreFactory::getStore ();
 		$value = $store->getPropertySubjects(\SMWDIProperty::newFromUserLabel ( 'DIQAFileLocation' ),
-			new \SMWDIBlob($filepath) );	
+			new \SMWDIBlob($filepath) );
 		$value = reset($value);
 		return $value !== false ? $value->getTitle() : NULL;
 	}
 	
 	/**
 	 * Recursively crawls a directory structure.
-	 * 
+	 *
 	 * @param string $filepath Path
 	 * @param function $callback Called for every file.
 	 * @param array $directories Returns all directories below $filepath

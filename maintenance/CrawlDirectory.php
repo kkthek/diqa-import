@@ -21,12 +21,18 @@ class CrawlDirectory extends Maintenance {
 		$this->mDescription = "Crawls a directory and imports documents: Word, Excel, PDF";
 		$this->addOption( 'directory', 'Directory to crawl', false, true );
 		$this->addOption( 'dry-run', 'Dry-run (does not import anything)', false, false );
-		
+		$this->addOption( 'force', 'Enforces the immediate import of documents', false, false );
 	}
 
 	public function execute() {
-		
 		$this->logger = new LoggerUtils('CrawlDirectory', 'Import');
+		
+		if(php_sapi_name() == 'cli') {
+		    $this->logger->log('Crawling started.');
+		}
+		
+		$dryRun = $this->hasOption('dry-run');
+		$force = $this->hasOption('force');
 		
 		try {
 			if ($this->hasOption('directory')) {
@@ -35,14 +41,12 @@ class CrawlDirectory extends Maintenance {
 				if (!is_dir($directory) || !is_readable($directory)) {
 					throw new Exception("Can not access: $directory");
 				}
-				$dryRun = $this->hasOption('dry-run');
 				$this->importDirectory($directory, $dryRun);
 
 			} else {
 				$cache = ObjectCache::getInstance(CACHE_DB);
 				$cache->set('DIQA.Import.timestamp', time());
-				$dryRun = $this->hasOption('dry-run');
-				$this->processRegisteredImportJobs ($dryRun);
+				$this->processRegisteredImportJobs ($dryRun, $force);
 			}
 		} catch(Exception $e) {
 			$this->logger->error($e->getMessage());
@@ -72,8 +76,9 @@ class CrawlDirectory extends Maintenance {
 	/**
 	 * Processes all registered jobs
 	 * @param bool $dryRun
+	 * @param bool $force
 	 */
-	private function processRegisteredImportJobs($dryRun) {
+	private function processRegisteredImportJobs($dryRun = false, $force = false) {
 		// read registered crawler jobs
 		// and select those which should run
 		$toRun = [];
@@ -89,10 +94,10 @@ class CrawlDirectory extends Maintenance {
 				continue;
 			}
 			
-			if ($e->notYetRun() || $e->isForceRun()) {
+			if ($e->notYetRun() || $e->isForceRun() || $force) {
 				$toRun[] = $e;
 			} else {
-				echo "CrawlDirectory: Next scheduled run of {$e->getRootPath()}: " . $e->getNextRun();
+				echo "CrawlDirectory: Next scheduled run of {$e->getRootPath()}: " . $e->getNextRun() . "\n";
 				
 				if ($e->shouldRun()) {
 					$toRun[] = $e;
@@ -104,10 +109,9 @@ class CrawlDirectory extends Maintenance {
 			$this->cleanUp();
 		}
 		
-		// create import jobs and update 
+		// create import jobs and update
 		// last run
 		foreach($toRun as $r) {
-			
 			$r->updateLastRun();
 			$r->forceRun(false);
 			$r->save();
@@ -118,18 +122,16 @@ class CrawlDirectory extends Maintenance {
 			$r->save();
 		}
 	}
-
 	
 	/**
 	 * Imports a single directory
-	 * 
+	 *
 	 * @param $directory
 	 * @param $dryRun
 	 * @param $jobID (optional)
 	 * @return int Number of created import jobs for *new* documents
 	 */
 	private function importDirectory($directory, $dryRun, $jobID = NULL) {
-		
 		ImportSpecialPage::checkDirectory($directory);
 		
 		$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQAImport');
@@ -148,7 +150,6 @@ class CrawlDirectory extends Maintenance {
 	 * which do not exist anymore in the filesystem.
 	 */
 	private function cleanUp() {
-		
 		$this->logger->log("Cleaning up content...");
 		$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQAImport');
 		
