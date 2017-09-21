@@ -41,15 +41,24 @@ class CrawlDirectory extends Maintenance {
 				if (!is_dir($directory) || !is_readable($directory)) {
 					throw new Exception("Can not access: $directory");
 				}
-				$this->importDirectory($directory, $dryRun);
+				$this->importDirectory($directory, $dryRun, $force);
 
 			} else {
+			    if ($force) {
+			        // makes sure, that the CrawlConfig is set up properly
+			        ImportSpecialPage::readMountedFolders($force);
+			    }
+			    
 				$cache = ObjectCache::getInstance(CACHE_DB);
 				$cache->set('DIQA.Import.timestamp', time());
 				$this->processRegisteredImportJobs ($dryRun, $force);
 			}
 		} catch(Exception $e) {
 			$this->logger->error($e->getMessage());
+		}
+	
+		if(php_sapi_name() == 'cli') {
+		    $this->logger->log('Crawling finished.');
 		}
 	}
 	
@@ -79,12 +88,14 @@ class CrawlDirectory extends Maintenance {
 	 * @param bool $force
 	 */
 	private function processRegisteredImportJobs($dryRun = false, $force = false) {
-		// read registered crawler jobs
-		// and select those which should run
+		// read registered crawler jobs and select those which should run
 		$toRun = [];
 		$entries = CrawlerConfig::all();
 		foreach($entries as $e) {
-			
+		    if(php_sapi_name() == 'cli') {
+		        $this->logger->log('Checking: ' . json_encode($e));
+		    }
+		    
 			if (!$e->isActive()) {
 				continue;
 			}
@@ -109,14 +120,13 @@ class CrawlDirectory extends Maintenance {
 			$this->cleanUp();
 		}
 		
-		// create import jobs and update
-		// last run
+		// create import jobs and update last run
 		foreach($toRun as $r) {
 			$r->updateLastRun();
-			$r->forceRun(false);
+			$r->forceRun($force);
 			$r->save();
 			$this->logger->log("Creating import jobs for: ".$r->getRootPath());
-			$jobsCreated = $this->importDirectory($r->getRootPath(), $dryRun, $r->getId());
+			$jobsCreated = $this->importDirectory($r->getRootPath(), $dryRun, $force, $r->getId());
 			$r->setDocumentsProcessed($r->getDocumentsProcessed() + $jobsCreated);
 			$r->setStatus("OK");
 			$r->save();
@@ -131,7 +141,7 @@ class CrawlDirectory extends Maintenance {
 	 * @param $jobID (optional)
 	 * @return int Number of created import jobs for *new* documents
 	 */
-	private function importDirectory($directory, $dryRun, $jobID = NULL) {
+	private function importDirectory($directory, $dryRun, $force, $jobID = NULL) {
 		ImportSpecialPage::checkDirectory($directory);
 		
 		$specialPageTitle = Title::makeTitle(NS_SPECIAL, 'DIQAImport');
@@ -139,6 +149,7 @@ class CrawlDirectory extends Maintenance {
 		$params = [];
 		$params['directory'] = $directory;
 		$params['dry-run'] = $dryRun;
+		$params['force'] = $force;
 		$params['job-id'] = $jobID;
 		$job = new CrawlDirectoryJob($specialPageTitle, $params);
 		

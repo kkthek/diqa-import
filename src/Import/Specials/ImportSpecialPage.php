@@ -2,25 +2,21 @@
 
 namespace DIQA\Import\Specials;
 
-use SMW\SpecialPage;
-use Philo\Blade\Blade;
-use Title;
-use JobQueueGroup;
-use Revision;
 use Exception;
+use Philo\Blade\Blade;
+use SMW\SpecialPage;
+use Title;
 
+use Carbon\Carbon;
 use DIQA\Import\Models\CrawlerConfig;
 use DIQA\Import\Models\TaggingRule;
-use DIQA\Import\RefreshDocumentsJob;
-use DIQA\Util\TemplateEditor;
-use DIQA\Import\TaggingRuleParserFunction;
-use Carbon\Carbon;
 use DIQA\Util\FileUtils;
 use DIQA\Util\LoggerUtils;
 
 if (! defined ( 'MEDIAWIKI' )) {
 	die ();
 }
+
 class ImportSpecialPage extends SpecialPage {
 
 	const ERROR_NOT_ALLOWED = 100;
@@ -33,6 +29,7 @@ class ImportSpecialPage extends SpecialPage {
 	const DIQA_IMPORT_FOLDER = '/opt/DIQA';
 
 	private $blade;
+
 	public function __construct() {
 		parent::__construct ( 'DIQAImport' );
 		global $wgHooks;
@@ -40,7 +37,6 @@ class ImportSpecialPage extends SpecialPage {
 		$cache = __DIR__ . '/../../../cache';
 
 		$this->blade = new Blade ( $views, $cache );
-
 	}
 
 	/**
@@ -75,7 +71,7 @@ class ImportSpecialPage extends SpecialPage {
 	 *
 	 * @throws Exception
 	 */
-	private function readMountedFolders($force = true) {
+	public static function readMountedFolders($force = true) {
 
 		global $wgDIQAImportUseDIQAFolder;
 		if (isset($wgDIQAImportUseDIQAFolder) && $wgDIQAImportUseDIQAFolder === false) {
@@ -137,7 +133,6 @@ class ImportSpecialPage extends SpecialPage {
 		if (!$authenticated) {
 			throw new Exception('Not allowed to access', self::ERROR_NOT_ALLOWED);
 		}
-
 	}
 
 	/**
@@ -200,9 +195,9 @@ class ImportSpecialPage extends SpecialPage {
 	}
 
 	/**
-	 * Returns the path of the log with then given jobID 
+	 * Returns the path of the log with then given jobID
 	 * or the default log if jobID is false.
-	 * 
+	 *
 	 * @param int $jobID Job-ID or false
 	 * @throws \Exception
 	 * @return string
@@ -210,15 +205,15 @@ class ImportSpecialPage extends SpecialPage {
 	public static function getLogPath($jobID) {
 		$logDir = LoggerUtils::getLogDir();
 		$date = (new \DateTime('now', new \DateTimeZone(date_default_timezone_get())))->format("Y-m-d");
+		
 		if ($jobID !== false) {
 			$path = "$logDir/Import/Import_{$jobID}_{$date}.log";
 		} else {
 			$path = "$logDir/Import/Import_{$date}.log";
 		}
+		
 		if (!file_exists($path)) {
-			
 			throw new \Exception("Log does not exist");
-			
 		}
 		return $path;
 	}
@@ -230,7 +225,6 @@ class ImportSpecialPage extends SpecialPage {
 	 * @param int $jobID
 	 */
 	private function doShowLog($jobID, $offset) {
-		
 		$path = self::getLogPath($jobID);
 		$result = FileUtils::last_lines($path, 1000, $offset);
 		$lines = $result['lines'];
@@ -244,7 +238,8 @@ class ImportSpecialPage extends SpecialPage {
 		
 		echo $html;
 	}
-	 /**
+	
+	/**
 	  * Adds or updates an entry.
 	  *
 	  * @param bool $active
@@ -304,7 +299,6 @@ class ImportSpecialPage extends SpecialPage {
 	 * @param id
 	 */
 	 private function doRemoveEntry($id) {
-
 		$entry = CrawlerConfig::where('id', $id)->get()->first();
 		$entry->delete();
 	}
@@ -316,7 +310,6 @@ class ImportSpecialPage extends SpecialPage {
 	 * @param string (out) html
 	 */
 	 private function doEditEntry($id, & $html) {
-
 		$entry = CrawlerConfig::where('id', $id)->get()->first();
 		$html .= $this->blade->view ()->make ( "specials.import.import-special-form",
 				[	'entry' => $entry,
@@ -330,7 +323,6 @@ class ImportSpecialPage extends SpecialPage {
 	 * @param string (out) html
 	 */
 	private function doForceCrawl($id, & $html) {
-
 		$entry = CrawlerConfig::where('id', $id)->get()->first();
 		$entry->forceRun();
 		$entry->setStatus("FORCE");
@@ -345,7 +337,6 @@ class ImportSpecialPage extends SpecialPage {
 	 * @param string (out) html
 	 */
 	private function setActivationStatus($id, $status, & $html) {
-
 		$entry = CrawlerConfig::where('id', $id)->get()->first();
 		$entry->active = $status ? 1 : 0;
 		$entry->save();
@@ -406,7 +397,6 @@ class ImportSpecialPage extends SpecialPage {
 	}
 
 	public static function _checkDirectory($directory, $originalDir) {
-
 		if (is_dir($directory) && is_readable($directory)) {
 			return true;
 		}
@@ -421,6 +411,5 @@ class ImportSpecialPage extends SpecialPage {
 			return self::_checkDirectory(substr($directory, 0, $lastpos), $originalDir);
 		}
 	}
-
 
 }

@@ -54,11 +54,10 @@ class CrawlDirectoryJob extends Job {
 		$jobsForNewDocuments = 0;
 		$directory = rtrim($directory, ' /');
 		$directories = [];
+
 		$this->crawl($directory, function($file) use ($specialPageTitle, & $jobsForNewDocuments) {
-				
-			$this->logger->log("Processing file: " . $file);
+			$this->logger->log("Processing file: $file");
 			
-			global $IP;
 			$jobID = $this->params['job-id'];
 			$cache = \ObjectCache::getInstance(CACHE_DB);
 			$cache->set("DIQA.Import.Jobs.$jobID", time());
@@ -68,18 +67,18 @@ class CrawlDirectoryJob extends Job {
 				
 			global $wgFileExtensions;
 			if (!in_array($ext, $wgFileExtensions)) {
-				$this->logger->warn("Not supported filetype: $file");
+				$this->logger->warn("...unsupported file type: $file");
 				return;
 			}
 			
 			if (!$this->isModified($file)) {
-				$this->logger->log("Not modified, skipping: $file");
+				$this->logger->log('...not modified, skipping.');
 				return;
 			}
 			
 			$isNewDocument = is_null($this->getTitleForFileLocation($file));
 			
-			$this->logger->log("Create import job for: $file");
+			$this->logger->log('...creating import job.');
 			$params = [];
 			$params['filepath'] = $file;
 			$params['modtime'] = date('Y-m-d H:i:s', filemtime($file));
@@ -87,7 +86,6 @@ class CrawlDirectoryJob extends Job {
 			$params['job-id'] = $this->params['job-id'];
 			
 			switch($ext) {
-		
 				case "doc":
 				case "docx":
 				case "xls":
@@ -95,15 +93,11 @@ class CrawlDirectoryJob extends Job {
 				case "pdf":
 				case "ppt":
 				case "pptx":
-						
 					$job = new ImportDocumentJob($specialPageTitle, $params);
 					break;
-
 				default:
-					
 					$job = new ImportImageJob($specialPageTitle, $params);
 					break;
-				
 			}
 			
 			JobQueueGroup::singleton()->push( $job );
@@ -228,6 +222,4 @@ class CrawlDirectoryJob extends Job {
 			closedir($dh);
 		}
 	}
-	
-	
 }
