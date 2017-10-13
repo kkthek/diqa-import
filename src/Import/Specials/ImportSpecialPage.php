@@ -96,12 +96,20 @@ class ImportSpecialPage extends SpecialPage {
 			if (($filepath == '.') || ($filepath == '..') || !is_dir(self::DIQA_IMPORT_FOLDER.'/'.$filepath)) {
 				continue;
 			}
+			
+			$mountedFolders = self::getMountedFolders();
 
 			$config = CrawlerConfig::where('root_path', self::DIQA_IMPORT_FOLDER.'/'.$filepath)->get()->first();
 			if (is_null($config)) {
+				
+				$urlPrefix = '';
+				if (array_key_exists(self::DIQA_IMPORT_FOLDER.'/'.$filepath, $mountedFolders)) {
+					$urlPrefix = $mountedFolders[self::DIQA_IMPORT_FOLDER.'/'.$filepath]['unc'];
+				}
+				
 				$config = new CrawlerConfig();
 				$config->crawler_type = 'doc-import';
-				$config->url_prefix = '';
+				$config->url_prefix = $urlPrefix;
 				$config->root_path = self::DIQA_IMPORT_FOLDER.'/'.$filepath;
 				$config->date_to_start = Carbon::now()->startOfDay()->toDateTimeString();
 				$config->time_interval = CrawlerConfig::$INTERVALS['daily'];
@@ -112,6 +120,30 @@ class ImportSpecialPage extends SpecialPage {
 
 		}
 		closedir($dh);
+	}
+	
+	/**
+	 * Returns all currently mounted folders in /opt/DIQA
+	 *
+	 * @return [ directory => [ 'unc' => //SERVER/path ] ]
+	 */
+	private static function getMountedFolders() {
+		$results = [ ];
+		$mounts = file_get_contents ( '/proc/mounts' );
+		$rows = explode ( "\n", $mounts );
+	
+		foreach ( $rows as $row ) {
+			$parts = explode ( " ", $row );
+			if (count($parts) < 2) {
+				continue;
+			}
+			if (strpos ( $parts [1], '/opt/DIQA' ) !== false) {
+				$results [$parts [1]] = [
+				'unc' => $parts [0]
+				];
+			}
+		}
+		return $results;
 	}
 
 	/**
