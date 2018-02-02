@@ -6,7 +6,7 @@
 		"DIQA", "Document import", "SMW", "Word", "Excel", "PowerPoint", "PDF"
 	],
 	
-	"license": "GPL v2.0",
+	"license": "GPL-2.0-or-later",
 	"authors": [
 		{
 			"name": "Kai Kühn"
